@@ -11,7 +11,7 @@ import {
   Container,
 } from '@mui/material';
 import { LoginOutlined } from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 interface LoginCredentials {
   email: string;

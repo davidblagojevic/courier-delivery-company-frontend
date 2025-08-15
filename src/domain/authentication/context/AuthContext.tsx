@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback, ReactNode } from 'react';
-import { axiosClient } from '../utils/axiosClient';
+import { axiosClient } from '../../../api/axiosClient';
 
 export interface UserInfo {
   id: string;

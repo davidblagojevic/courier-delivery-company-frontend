@@ -25,8 +25,8 @@ import {
   InputAdornment,
 } from '@mui/material';
 import { Search, Refresh } from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
-import { axiosClient } from '../utils/axiosClient';
+import { useAuth } from '../../authentication';
+import { axiosClient } from '../../../api/axiosClient';
 
 interface Order {
   id: string;

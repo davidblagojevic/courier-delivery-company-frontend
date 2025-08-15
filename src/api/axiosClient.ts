@@ -13,7 +13,6 @@ class AxiosClient {
 
   constructor() {
     this.axiosInstance = axios.create({
-      //TODO: Set the base URL dynamically based on environment
       baseURL: '/',
       timeout: 10000,
       headers: {
