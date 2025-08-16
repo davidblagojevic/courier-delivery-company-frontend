@@ -1,2 +1,1 @@
-// Export shared components here
-export {};
+export { AddressAutocomplete } from './AddressAutocomplete';

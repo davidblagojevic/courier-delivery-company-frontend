@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
-import { TokenData } from '../contexts/AuthContext';
+import { TokenData } from '../domain/authentication';
 
 interface RefreshTokenResponse {
   accessToken: string;

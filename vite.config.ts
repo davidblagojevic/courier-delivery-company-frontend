@@ -7,15 +7,17 @@ export default defineConfig({
   server: {
     open: true,
     proxy: {
+      // Proxy all '/api' requests to the backend
       '/api': {
         target: 'https://localhost:7036',
         changeOrigin: true,
-        secure: false
+        secure: false,
       },
+      // Proxy all '/identity' requests to the backend
       '/identity': {
         target: 'https://localhost:7036',
         changeOrigin: true,
-        secure: false
+        secure: false,
       }
     }
   }

@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../domain/authentication';
 import { LoginPage } from '../domain/authentication';
 import { DashboardPage } from '../domain/app';
-import { OrdersPage } from '../domain/orders';
+import { OrdersPage, CreateOrderPage } from '../domain/orders';
 import { ProtectedRoute } from './protected.route';
 
 const AppRouter: React.FC = () => {
@@ -32,6 +32,14 @@ const AppRouter: React.FC = () => {
           element={
             <ProtectedRoute>
               <OrdersPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders/create"
+          element={
+            <ProtectedRoute>
+              <CreateOrderPage />
             </ProtectedRoute>
           }
         />

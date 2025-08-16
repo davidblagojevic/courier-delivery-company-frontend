@@ -17,6 +17,7 @@ import {
   Dashboard,
   LocalShipping,
   Settings,
+  Add,
 } from '@mui/icons-material';
 import { useAuth } from '../../../../authentication';
 
@@ -39,6 +40,8 @@ export const Header: React.FC = () => {
     const primaryRole = userInfo.roles[0] || 'User';
     return `${userInfo.email} (${primaryRole})`;
   };
+
+  const isCustomer = userInfo?.roles.includes('Customer');
 
   const menuItems = [
     { label: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
@@ -69,6 +72,26 @@ export const Header: React.FC = () => {
               {item.label}
             </Button>
           ))}
+          
+          {/* Create Order button for customers only */}
+          {isCustomer && (
+            <Button
+              color="inherit"
+              variant="outlined"
+              startIcon={<Add />}
+              onClick={() => navigate('/orders/create')}
+              sx={{ 
+                textTransform: 'none',
+                borderColor: 'rgba(255, 255, 255, 0.5)',
+                '&:hover': {
+                  borderColor: 'white',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                }
+              }}
+            >
+              Create Order
+            </Button>
+          )}
         </Box>
 
         {/* User Menu */}
