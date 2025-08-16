@@ -23,8 +23,12 @@ import {
   CircularProgress,
   IconButton,
   InputAdornment,
+  useTheme,
+  useMediaQuery,
+  Stack,
+  Collapse,
 } from '@mui/material';
-import { Search, Refresh } from '@mui/icons-material';
+import { Search, Refresh, FilterList, ExpandMore, ExpandLess } from '@mui/icons-material';
 import { useAuth } from '../../authentication';
 import { axiosClient } from '../../../api/axiosClient';
 
@@ -74,6 +78,8 @@ const getStatusColor = (status: string) => {
 
 export const OrdersPage: React.FC = () => {
   const { token, userInfo } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [orders, setOrders] = useState<PagedOrdersResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,6 +88,7 @@ export const OrdersPage: React.FC = () => {
   const [sortOrder, setSortOrder] = useState('desc');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [filtersExpanded, setFiltersExpanded] = useState(!isMobile);
 
   // Early return if no auth data
   if (!token || !userInfo) {
@@ -154,69 +161,101 @@ export const OrdersPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: isMobile ? 2 : 3 }}>
       <Card>
         <CardContent>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-            <Typography variant="h4" component="h1">
+            <Typography 
+              variant={isMobile ? "h5" : "h4"} 
+              component="h1"
+              sx={{ 
+                fontSize: isMobile ? '1.5rem' : '2.125rem',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                pr: 1
+              }}
+            >
               {getRoleBasedTitle()}
             </Typography>
             <Button
               variant="outlined"
-              startIcon={<Refresh />}
+              startIcon={!isMobile ? <Refresh /> : undefined}
               onClick={fetchOrders}
               disabled={loading}
+              size={isMobile ? "small" : "medium"}
             >
-              Refresh
+              {isMobile ? <Refresh /> : 'Refresh'}
             </Button>
           </Box>
 
-          <Box display="flex" gap={2} mb={3} flexWrap="wrap">
-            <TextField
-              label="Search orders"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={handleSearch} disabled={loading}>
-                      <Search />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              sx={{ minWidth: 300 }}
-            />
+          {/* Mobile: Collapsible filters */}
+          {isMobile && (
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<FilterList />}
+              endIcon={filtersExpanded ? <ExpandLess /> : <ExpandMore />}
+              onClick={() => setFiltersExpanded(!filtersExpanded)}
+              sx={{ mb: 2 }}
+            >
+              Filters & Search
+            </Button>
+          )}
 
-            <FormControl sx={{ minWidth: 150 }}>
-              <InputLabel>Sort by</InputLabel>
-              <Select
-                value={sortColumn}
-                label="Sort by"
-                onChange={(e) => setSortColumn(e.target.value)}
-              >
-                <MenuItem value="orderDate">Order Date</MenuItem>
-                <MenuItem value="deliveryDate">Delivery Date</MenuItem>
-                <MenuItem value="orderStatus">Status</MenuItem>
-                <MenuItem value="totalPrice">Price</MenuItem>
-                {isAdmin && <MenuItem value="customerId">Customer</MenuItem>}
-                {isAdmin && <MenuItem value="courierId">Courier</MenuItem>}
-              </Select>
-            </FormControl>
+          <Collapse in={filtersExpanded} timeout="auto" unmountOnExit>
+            <Stack spacing={2} mb={3}>
+              <TextField
+                fullWidth
+                label="Search orders"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={handleSearch} disabled={loading}>
+                        <Search />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                size={isMobile ? "small" : "medium"}
+              />
 
-            <FormControl sx={{ minWidth: 100 }}>
-              <InputLabel>Order</InputLabel>
-              <Select
-                value={sortOrder}
-                label="Order"
-                onChange={(e) => setSortOrder(e.target.value)}
-              >
-                <MenuItem value="asc">Ascending</MenuItem>
-                <MenuItem value="desc">Descending</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+              <Box display="flex" gap={2} flexWrap="wrap">
+                <FormControl sx={{ minWidth: isMobile ? '100%' : 150, flex: isMobile ? 1 : 'none' }}>
+                  <InputLabel>Sort by</InputLabel>
+                  <Select
+                    value={sortColumn}
+                    label="Sort by"
+                    onChange={(e) => setSortColumn(e.target.value)}
+                    size={isMobile ? "small" : "medium"}
+                  >
+                    <MenuItem value="orderDate">Order Date</MenuItem>
+                    <MenuItem value="deliveryDate">Delivery Date</MenuItem>
+                    <MenuItem value="orderStatus">Status</MenuItem>
+                    <MenuItem value="totalPrice">Price</MenuItem>
+                    {isAdmin && <MenuItem value="customerId">Customer</MenuItem>}
+                    {isAdmin && <MenuItem value="courierId">Courier</MenuItem>}
+                  </Select>
+                </FormControl>
+
+                <FormControl sx={{ minWidth: isMobile ? '100%' : 100, flex: isMobile ? 1 : 'none' }}>
+                  <InputLabel>Order</InputLabel>
+                  <Select
+                    value={sortOrder}
+                    label="Order"
+                    onChange={(e) => setSortOrder(e.target.value)}
+                    size={isMobile ? "small" : "medium"}
+                  >
+                    <MenuItem value="asc">Ascending</MenuItem>
+                    <MenuItem value="desc">Descending</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+            </Stack>
+          </Collapse>
 
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -232,46 +271,58 @@ export const OrdersPage: React.FC = () => {
 
           {orders && !loading && (
             <>
-              <TableContainer component={Paper}>
-                <Table>
+              <TableContainer 
+                component={Paper} 
+                sx={{ 
+                  maxWidth: '100%',
+                  overflowX: 'auto',
+                  '& .MuiTable-root': {
+                    minWidth: isMobile ? 800 : 'auto',
+                  },
+                }}
+              >
+                <Table size={isMobile ? 'small' : 'medium'}>
                   <TableHead>
                     <TableRow>
-                      <TableCell>Order ID</TableCell>
+                      <TableCell sx={{ minWidth: isMobile ? 80 : 120 }}>Order ID</TableCell>
                       <TableCell 
                         onClick={() => handleSort('orderStatus')} 
-                        sx={{ cursor: 'pointer' }}
+                        sx={{ cursor: 'pointer', minWidth: isMobile ? 80 : 100 }}
                       >
                         Status
                       </TableCell>
                       <TableCell 
                         onClick={() => handleSort('totalPrice')} 
-                        sx={{ cursor: 'pointer' }}
+                        sx={{ cursor: 'pointer', minWidth: isMobile ? 70 : 80 }}
                       >
                         Price
                       </TableCell>
                       <TableCell 
                         onClick={() => handleSort('orderDate')} 
-                        sx={{ cursor: 'pointer' }}
+                        sx={{ cursor: 'pointer', minWidth: isMobile ? 100 : 120 }}
                       >
                         Order Date
                       </TableCell>
                       <TableCell 
                         onClick={() => handleSort('deliveryDate')} 
-                        sx={{ cursor: 'pointer' }}
+                        sx={{ cursor: 'pointer', minWidth: isMobile ? 100 : 120 }}
                       >
                         Delivery Date
                       </TableCell>
-                      {isAdmin && <TableCell>Customer ID</TableCell>}
-                      {(isAdmin || isCourier) && <TableCell>Courier ID</TableCell>}
-                      <TableCell>Description</TableCell>
+                      {isAdmin && <TableCell sx={{ minWidth: isMobile ? 80 : 120 }}>Customer ID</TableCell>}
+                      {(isAdmin || isCourier) && <TableCell sx={{ minWidth: isMobile ? 80 : 120 }}>Courier ID</TableCell>}
+                      <TableCell sx={{ minWidth: isMobile ? 120 : 150 }}>Description</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {orders.items.map((order) => (
                       <TableRow key={order.id} hover>
                         <TableCell>
-                          <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                            {order.id.substring(0, 8)}...
+                          <Typography 
+                            variant={isMobile ? "caption" : "body2"} 
+                            sx={{ fontFamily: 'monospace' }}
+                          >
+                            {order.id.substring(0, isMobile ? 6 : 8)}...
                           </Typography>
                         </TableCell>
                         <TableCell>
@@ -279,41 +330,80 @@ export const OrdersPage: React.FC = () => {
                             label={order.orderStatus}
                             color={getStatusColor(order.orderStatus) as any}
                             size="small"
+                            sx={{ 
+                              fontSize: isMobile ? '0.65rem' : '0.75rem',
+                              height: isMobile ? 20 : 24,
+                            }}
                           />
                         </TableCell>
-                        <TableCell>${order.totalPrice.toFixed(2)}</TableCell>
                         <TableCell>
-                          {new Date(order.orderDate).toLocaleDateString()}
+                          <Typography variant={isMobile ? "caption" : "body2"}>
+                            ${order.totalPrice.toFixed(2)}
+                          </Typography>
                         </TableCell>
                         <TableCell>
-                          {new Date(order.deliveryDate).toLocaleDateString()}
+                          <Typography variant={isMobile ? "caption" : "body2"}>
+                            {new Date(order.orderDate).toLocaleDateString(undefined, {
+                              month: 'short',
+                              day: 'numeric',
+                              year: isMobile ? '2-digit' : 'numeric'
+                            })}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant={isMobile ? "caption" : "body2"}>
+                            {new Date(order.deliveryDate).toLocaleDateString(undefined, {
+                              month: 'short',
+                              day: 'numeric',
+                              year: isMobile ? '2-digit' : 'numeric'
+                            })}
+                          </Typography>
                         </TableCell>
                         {isAdmin && (
                           <TableCell>
-                            <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                              {order.customerId.substring(0, 8)}...
+                            <Typography 
+                              variant={isMobile ? "caption" : "body2"} 
+                              sx={{ fontFamily: 'monospace' }}
+                            >
+                              {order.customerId.substring(0, isMobile ? 6 : 8)}...
                             </Typography>
                           </TableCell>
                         )}
                         {(isAdmin || isCourier) && (
                           <TableCell>
                             {order.courierId ? (
-                              <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                                {order.courierId.substring(0, 8)}...
+                              <Typography 
+                                variant={isMobile ? "caption" : "body2"} 
+                                sx={{ fontFamily: 'monospace' }}
+                              >
+                                {order.courierId.substring(0, isMobile ? 6 : 8)}...
                               </Typography>
                             ) : (
-                              <Typography variant="body2" color="text.secondary">
+                              <Typography 
+                                variant={isMobile ? "caption" : "body2"} 
+                                color="text.secondary"
+                              >
                                 Unassigned
                               </Typography>
                             )}
                           </TableCell>
                         )}
                         <TableCell>
-                          {order.description || (
-                            <Typography variant="body2" color="text.secondary">
-                              No description
-                            </Typography>
-                          )}
+                          <Typography 
+                            variant={isMobile ? "caption" : "body2"}
+                            sx={{
+                              maxWidth: isMobile ? 120 : 200,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {order.description || (
+                              <span style={{ color: theme.palette.text.secondary }}>
+                                No description
+                              </span>
+                            )}
+                          </Typography>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -322,20 +412,44 @@ export const OrdersPage: React.FC = () => {
               </TableContainer>
 
               <TablePagination
-                rowsPerPageOptions={[5, 10, 25, 50]}
+                rowsPerPageOptions={isMobile ? [5, 10] : [5, 10, 25, 50]}
                 component="div"
                 count={orders.totalCount}
                 rowsPerPage={pageSize}
-                page={page - 1} // Convert to 0-based for MUI
+                page={page - 1}
                 onPageChange={handleChangePage}
                 onRowsPerPageChange={handleChangeRowsPerPage}
+                sx={{
+                  '& .MuiTablePagination-toolbar': {
+                    paddingLeft: isMobile ? 1 : 2,
+                    paddingRight: isMobile ? 1 : 2,
+                  },
+                  '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                    fontSize: isMobile ? '0.75rem' : '0.875rem',
+                  },
+                }}
               />
 
-              <Box mt={2} display="flex" justifyContent="space-between" alignItems="center">
-                <Typography variant="body2" color="text.secondary">
+              <Box 
+                mt={2} 
+                display="flex" 
+                justifyContent="space-between" 
+                alignItems="center"
+                flexDirection={isMobile ? 'column' : 'row'}
+                gap={isMobile ? 1 : 0}
+              >
+                <Typography 
+                  variant={isMobile ? "caption" : "body2"} 
+                  color="text.secondary"
+                  textAlign={isMobile ? 'center' : 'left'}
+                >
                   Showing {orders.items.length} of {orders.totalCount} orders
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography 
+                  variant={isMobile ? "caption" : "body2"} 
+                  color="text.secondary"
+                  textAlign={isMobile ? 'center' : 'right'}
+                >
                   Page {orders.page} of {orders.totalPages}
                 </Typography>
               </Box>

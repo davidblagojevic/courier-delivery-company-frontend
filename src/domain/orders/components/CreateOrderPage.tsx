@@ -16,6 +16,9 @@ import {
   CircularProgress,
   Chip,
   InputAdornment,
+  useTheme,
+  useMediaQuery,
+  Grid,
 } from '@mui/material';
 import {
   Schedule,
@@ -43,6 +46,8 @@ interface AvailableVehicle {
 export const CreateOrderPage: React.FC = () => {
   const { userInfo } = useAuth();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
   // Form state
   const [collectionAddressId, setCollectionAddressId] = useState('');
