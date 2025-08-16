@@ -284,7 +284,7 @@ export const OrdersPage: React.FC = () => {
                 <Table size={isMobile ? 'small' : 'medium'}>
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ minWidth: isMobile ? 80 : 120 }}>Order ID</TableCell>
+                      <TableCell sx={{ minWidth: 200 }}>Order ID</TableCell>
                       <TableCell 
                         onClick={() => handleSort('orderStatus')} 
                         sx={{ cursor: 'pointer', minWidth: isMobile ? 80 : 100 }}
@@ -309,8 +309,8 @@ export const OrdersPage: React.FC = () => {
                       >
                         Delivery Date
                       </TableCell>
-                      {isAdmin && <TableCell sx={{ minWidth: isMobile ? 80 : 120 }}>Customer ID</TableCell>}
-                      {(isAdmin || isCourier) && <TableCell sx={{ minWidth: isMobile ? 80 : 120 }}>Courier ID</TableCell>}
+                      {isAdmin && <TableCell sx={{ minWidth: 200 }}>Customer ID</TableCell>}
+                      {(isAdmin || isCourier) && <TableCell sx={{ minWidth: 200 }}>Courier ID</TableCell>}
                       <TableCell sx={{ minWidth: isMobile ? 120 : 150 }}>Description</TableCell>
                     </TableRow>
                   </TableHead>
@@ -320,9 +320,13 @@ export const OrdersPage: React.FC = () => {
                         <TableCell>
                           <Typography 
                             variant={isMobile ? "caption" : "body2"} 
-                            sx={{ fontFamily: 'monospace' }}
+                            sx={{ 
+                              fontFamily: 'monospace',
+                              wordBreak: 'break-all',
+                              fontSize: isMobile ? '0.7rem' : '0.875rem'
+                            }}
                           >
-                            {order.id.substring(0, isMobile ? 6 : 8)}...
+                            {order.id}
                           </Typography>
                         </TableCell>
                         <TableCell>
@@ -363,9 +367,13 @@ export const OrdersPage: React.FC = () => {
                           <TableCell>
                             <Typography 
                               variant={isMobile ? "caption" : "body2"} 
-                              sx={{ fontFamily: 'monospace' }}
+                              sx={{ 
+                                fontFamily: 'monospace',
+                                wordBreak: 'break-all',
+                                fontSize: isMobile ? '0.7rem' : '0.875rem'
+                              }}
                             >
-                              {order.customerId.substring(0, isMobile ? 6 : 8)}...
+                              {order.customerId}
                             </Typography>
                           </TableCell>
                         )}
@@ -374,9 +382,13 @@ export const OrdersPage: React.FC = () => {
                             {order.courierId ? (
                               <Typography 
                                 variant={isMobile ? "caption" : "body2"} 
-                                sx={{ fontFamily: 'monospace' }}
+                                sx={{ 
+                                  fontFamily: 'monospace',
+                                  wordBreak: 'break-all',
+                                  fontSize: isMobile ? '0.7rem' : '0.875rem'
+                                }}
                               >
-                                {order.courierId.substring(0, isMobile ? 6 : 8)}...
+                                {order.courierId}
                               </Typography>
                             ) : (
                               <Typography 
