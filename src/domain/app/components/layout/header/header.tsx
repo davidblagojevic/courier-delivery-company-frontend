@@ -26,8 +26,10 @@ import {
   Settings,
   Add,
   Menu as MenuIcon,
+  Notifications,
 } from '@mui/icons-material';
 import { useAuth } from '../../../../authentication';
+import { NotificationBadge } from '../../../../notifications/components/NotificationBadge';
 
 export const Header: React.FC = () => {
   const { userInfo, logout } = useAuth();
@@ -70,6 +72,7 @@ export const Header: React.FC = () => {
   const menuItems = [
     { label: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
     { label: 'Orders', icon: <LocalShipping />, path: '/orders' },
+    { label: 'Notifications', icon: <Notifications />, path: '/notifications' },
     { label: 'Settings', icon: <Settings />, path: '/settings' },
   ];
 
@@ -132,6 +135,9 @@ export const Header: React.FC = () => {
               )}
             </Box>
           )}
+
+          {/* Notifications */}
+          <NotificationBadge />
 
           {/* User Menu */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>

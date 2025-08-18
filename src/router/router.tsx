@@ -4,6 +4,7 @@ import { useAuth } from '../domain/authentication';
 import { LoginPage } from '../domain/authentication';
 import { DashboardPage } from '../domain/app';
 import { OrdersPage, CreateOrderPage } from '../domain/orders';
+import { NotificationsPage } from '../domain/notifications/components/NotificationsPage';
 import { ProtectedRoute } from './protected.route';
 
 const AppRouter: React.FC = () => {
@@ -40,6 +41,14 @@ const AppRouter: React.FC = () => {
           element={
             <ProtectedRoute>
               <CreateOrderPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <NotificationsPage />
             </ProtectedRoute>
           }
         />

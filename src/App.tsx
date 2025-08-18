@@ -2,6 +2,7 @@ import React from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider } from './domain/authentication';
+import { NotificationsProvider } from './domain/notifications/context/NotificationsContext';
 import { AppRouter } from './router';
 
 const theme = createTheme({
@@ -25,7 +26,9 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <AppContent />
+        <NotificationsProvider>
+          <AppContent />
+        </NotificationsProvider>
       </AuthProvider>
     </ThemeProvider>
   );
