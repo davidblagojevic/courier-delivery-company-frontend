@@ -45,7 +45,6 @@ export class SignalRService {
           return Math.min(delay, 60000); // Max delay of 60 seconds
         },
       })
-      .configureLogging(signalR.LogLevel.Warning) // Reduce logging noise
       .build();
 
     // Notify listeners when connection is lost
@@ -73,7 +72,6 @@ export class SignalRService {
 
     try {
       await this.connection.start();
-      console.log('SignalR: Connection started successfully.');
       this.onConnectionStateChanged?.(true);
       await this.joinUserGroup();
     } catch (error) {
