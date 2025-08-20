@@ -27,28 +27,31 @@ import {
 } from '@mui/icons-material';
 import { useNotifications } from '../context/NotificationsContext';
 import { Notification } from '../services/notificationsApi';
+import { NotificationFilter } from '../types/NotificationFilter';
 import { formatDistanceToNow, format } from 'date-fns';
-
-type NotificationFilter = 'all' | 'unread' | 'read';
 
 export const NotificationsPage: React.FC = () => {
   const {
     notifications,
     unreadCount,
+    totalCount,
+    hasMore,
     isLoading,
+    isLoadingMore,
     isConnected,
     error,
     markAsRead,
     markAllAsRead,
     refreshNotifications,
+    loadMoreNotifications,
     clearError,
   } = useNotifications();
 
-  const [filter, setFilter] = useState<NotificationFilter>('all');
+  const [filter, setFilter] = useState<NotificationFilter>(NotificationFilter.All);
 
   useEffect(() => {
-    refreshNotifications();
-  }, [refreshNotifications]);
+    refreshNotifications(filter);
+  }, [refreshNotifications, filter]);
 
   const handleFilterChange = (
     _event: React.MouseEvent<HTMLElement>,
@@ -63,15 +66,9 @@ export const NotificationsPage: React.FC = () => {
     await markAsRead(notificationId);
   };
 
+  // No need for client-side filtering anymore since it's done server-side
   const getFilteredNotifications = (): Notification[] => {
-    switch (filter) {
-      case 'unread':
-        return notifications.filter(n => !n.isRead);
-      case 'read':
-        return notifications.filter(n => n.isRead);
-      default:
-        return notifications;
-    }
+    return notifications;
   };
 
   const getNotificationIcon = (notification: Notification) => {
@@ -113,7 +110,7 @@ export const NotificationsPage: React.FC = () => {
           <Button
             variant="outlined"
             startIcon={<RefreshIcon />}
-            onClick={refreshNotifications}
+            onClick={() => refreshNotifications(filter)}
             disabled={isLoading}
           >
             Refresh
@@ -138,7 +135,7 @@ export const NotificationsPage: React.FC = () => {
           <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
             <Box display="flex" alignItems="center" gap={2}>
               <Typography variant="h6">
-                {notifications.length} Total
+                {totalCount} Total
               </Typography>
               {unreadCount > 0 && (
                 <Chip
@@ -146,6 +143,11 @@ export const NotificationsPage: React.FC = () => {
                   color="primary"
                   size="small"
                 />
+              )}
+              {notifications.length < totalCount && (
+                <Typography variant="body2" color="text.secondary">
+                  Showing {notifications.length} of {totalCount}
+                </Typography>
               )}
             </Box>
 
@@ -156,9 +158,9 @@ export const NotificationsPage: React.FC = () => {
                 onChange={handleFilterChange}
                 size="small"
               >
-                <ToggleButton value="all">All</ToggleButton>
-                <ToggleButton value="unread">Unread</ToggleButton>
-                <ToggleButton value="read">Read</ToggleButton>
+                <ToggleButton value={NotificationFilter.All}>All</ToggleButton>
+                <ToggleButton value={NotificationFilter.Unread}>Unread</ToggleButton>
+                <ToggleButton value={NotificationFilter.Read}>Read</ToggleButton>
               </ToggleButtonGroup>
 
               {unreadCount > 0 && (
@@ -184,12 +186,12 @@ export const NotificationsPage: React.FC = () => {
           <Box sx={{ p: 4, textAlign: 'center' }}>
             <NotificationsIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
             <Typography variant="h6" color="text.secondary" gutterBottom>
-              {filter === 'unread' ? 'No unread notifications' : 
-               filter === 'read' ? 'No read notifications' : 
+              {filter === NotificationFilter.Unread ? 'No unread notifications' : 
+               filter === NotificationFilter.Read ? 'No read notifications' : 
                'No notifications yet'}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {filter === 'all' && 'You\'ll see order updates and important messages here.'}
+              {filter === NotificationFilter.All && 'You\'ll see order updates and important messages here.'}
             </Typography>
           </Box>
         ) : (
@@ -275,6 +277,20 @@ export const NotificationsPage: React.FC = () => {
               </React.Fragment>
             ))}
           </List>
+        )}
+
+        {/* Load More Button */}
+        {!isLoading && filteredNotifications.length > 0 && hasMore && (
+          <Box sx={{ p: 2, textAlign: 'center', borderTop: 1, borderColor: 'divider' }}>
+            <Button
+              variant="outlined"
+              onClick={() => loadMoreNotifications(filter)}
+              disabled={isLoadingMore}
+              startIcon={isLoadingMore ? <CircularProgress size={16} /> : undefined}
+            >
+              {isLoadingMore ? 'Loading...' : 'Load More'}
+            </Button>
+          </Box>
         )}
       </Paper>
     </Box>

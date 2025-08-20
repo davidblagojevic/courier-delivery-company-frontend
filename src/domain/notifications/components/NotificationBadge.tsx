@@ -17,19 +17,28 @@ import {
   MarkEmailRead as MarkReadIcon,
   Circle as UnreadIcon,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../context/NotificationsContext';
+import { Notification as NotificationItem } from '../services/notificationsApi';
+import { NotificationFilter } from '../types/NotificationFilter';
 import { formatDistanceToNow } from 'date-fns';
 
 export const NotificationBadge: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [displayedNotifications, setDisplayedNotifications] = useState<NotificationItem[]>([]);
+  const [showCount, setShowCount] = useState(10);
+  const navigate = useNavigate();
   const {
     notifications,
     unreadCount,
+    hasMore,
     isLoading,
+    isLoadingMore,
     isConnected,
     markAsRead,
     markAllAsRead,
     refreshNotifications,
+    loadMoreNotifications,
   } = useNotifications();
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -50,8 +59,34 @@ export const NotificationBadge: React.FC = () => {
     await markAllAsRead();
   };
 
+  const handleViewAllNotifications = () => {
+    handleClose();
+    navigate('/notifications');
+  };
+
+  const handleLoadMore = async () => {
+    if (showCount >= notifications.length && hasMore) {
+      await loadMoreNotifications(NotificationFilter.All);
+    } else if (showCount < notifications.length) {
+      setShowCount(prev => Math.min(prev + 10, notifications.length));
+    }
+  };
+
+  React.useEffect(() => {
+    setDisplayedNotifications(notifications.slice(0, Math.min(showCount, 20)));
+  }, [notifications, showCount]);
+
+  React.useEffect(() => {
+    if (notifications.length < showCount && notifications.length <= 10) {
+      setShowCount(10);
+    } else if (notifications.length > showCount && isLoadingMore === false) {
+      // When new notifications are loaded via loadMore, expand showCount to show them
+      setShowCount(Math.min(notifications.length, 20));
+    }
+  }, [notifications.length, showCount, isLoadingMore]);
+
   const open = Boolean(anchorEl);
-  const recentNotifications = notifications.slice(0, 10); // Show only recent 10
+  const canShowMore = (showCount < notifications.length && showCount < 20) || (showCount >= notifications.length && hasMore && !isLoadingMore);
 
   return (
     <>
@@ -76,7 +111,7 @@ export const NotificationBadge: React.FC = () => {
         PaperProps={{
           sx: {
             width: 400,
-            maxHeight: 500,
+            maxHeight: 600,
           },
         }}
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
@@ -98,7 +133,10 @@ export const NotificationBadge: React.FC = () => {
               {isLoading && <CircularProgress size={16} />}
               <Button
                 size="small"
-                onClick={refreshNotifications}
+                onClick={() => {
+                  setShowCount(10);
+                  refreshNotifications(NotificationFilter.All);
+                }}
                 disabled={isLoading}
               >
                 Refresh
@@ -121,15 +159,15 @@ export const NotificationBadge: React.FC = () => {
         <Divider />
 
         {/* Notifications List */}
-        {recentNotifications.length === 0 ? (
+        {displayedNotifications.length === 0 ? (
           <Box sx={{ p: 3, textAlign: 'center' }}>
             <Typography variant="body2" color="text.secondary">
               No notifications yet
             </Typography>
           </Box>
         ) : (
-          <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
-            {recentNotifications.map((notification) => (
+          <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+            {displayedNotifications.map((notification) => (
               <MenuItem
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification.id, notification.isRead)}
@@ -181,14 +219,22 @@ export const NotificationBadge: React.FC = () => {
 
         <Divider />
         
-        {/* Footer */}
-        {notifications.length > recentNotifications.length && (
-          <Box sx={{ p: 1, textAlign: 'center' }}>
-            <Button size="small" onClick={handleClose}>
-              View all notifications
+        {/* Footer with Load More and View All */}
+        <Box sx={{ p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {canShowMore && (
+            <Button 
+              size="small" 
+              onClick={handleLoadMore}
+              disabled={isLoadingMore}
+              startIcon={isLoadingMore ? <CircularProgress size={16} /> : undefined}
+            >
+              {isLoadingMore ? 'Loading...' : 'Load More'}
             </Button>
-          </Box>
-        )}
+          )}
+          <Button size="small" onClick={handleViewAllNotifications}>
+            View all notifications
+          </Button>
+        </Box>
       </Menu>
     </>
   );

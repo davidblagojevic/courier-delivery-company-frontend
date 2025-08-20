@@ -8,7 +8,8 @@ import React, {
   ReactNode,
 } from 'react';
 import { SignalRService, NotificationData } from '../services/signalRService';
-import { NotificationsApi, Notification } from '../services/notificationsApi';
+import { NotificationsApi, Notification, NotificationsResponse } from '../services/notificationsApi';
+import { NotificationFilter } from '../types/NotificationFilter';
 import { useAuth } from '../../authentication/context/AuthContext';
 
 // --- STATE AND REDUCER ---
@@ -16,7 +17,10 @@ import { useAuth } from '../../authentication/context/AuthContext';
 interface NotificationsState {
   notifications: Notification[];
   unreadCount: number;
+  totalCount: number;
+  hasMore: boolean;
   isLoading: boolean;
+  isLoadingMore: boolean;
   isConnected: boolean;
   error: string | null;
 }
@@ -24,7 +28,10 @@ interface NotificationsState {
 const initialState: NotificationsState = {
   notifications: [],
   unreadCount: 0,
+  totalCount: 0,
+  hasMore: false,
   isLoading: true, // Start with loading true
+  isLoadingMore: false,
   isConnected: false,
   error: null,
 };
@@ -32,7 +39,9 @@ const initialState: NotificationsState = {
 // Action types are kept the same
 type NotificationsAction =
   | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_NOTIFICATIONS'; payload: Notification[] }
+  | { type: 'SET_LOADING_MORE'; payload: boolean }
+  | { type: 'SET_NOTIFICATIONS'; payload: NotificationsResponse }
+  | { type: 'LOAD_MORE_NOTIFICATIONS'; payload: NotificationsResponse }
   | { type: 'ADD_NOTIFICATION'; payload: Notification }
   | { type: 'MARK_AS_READ'; payload: string }
   | { type: 'MARK_ALL_AS_READ' }
@@ -47,12 +56,25 @@ const notificationsReducer = (
   switch (action.type) {
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
+    case 'SET_LOADING_MORE':
+      return { ...state, isLoadingMore: action.payload };
     case 'SET_NOTIFICATIONS':
       return {
         ...state,
         isLoading: false,
-        notifications: action.payload,
-        unreadCount: action.payload.filter((n) => !n.isRead).length,
+        notifications: action.payload.notifications,
+        unreadCount: action.payload.unreadCount,
+        totalCount: action.payload.totalCount,
+        hasMore: action.payload.hasMore,
+      };
+    case 'LOAD_MORE_NOTIFICATIONS':
+      return {
+        ...state,
+        isLoadingMore: false,
+        notifications: [...state.notifications, ...action.payload.notifications],
+        unreadCount: action.payload.unreadCount,
+        totalCount: action.payload.totalCount,
+        hasMore: action.payload.hasMore,
       };
     case 'ADD_NOTIFICATION':
       return {
@@ -96,7 +118,8 @@ const notificationsReducer = (
 interface NotificationsContextType extends NotificationsState {
   markAsRead: (notificationId: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
-  refreshNotifications: () => Promise<void>;
+  refreshNotifications: (filter?: NotificationFilter) => Promise<void>;
+  loadMoreNotifications: (filter?: NotificationFilter) => Promise<void>;
   clearError: () => void;
 }
 
@@ -171,8 +194,8 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
     const fetchNotifications = async () => {
       dispatch({ type: 'SET_LOADING', payload: true });
       try {
-        const notifications = await NotificationsApi.getNotifications();
-        dispatch({ type: 'SET_NOTIFICATIONS', payload: notifications });
+        const response = await NotificationsApi.getNotifications(NotificationFilter.All, 0, 10);
+        dispatch({ type: 'SET_NOTIFICATIONS', payload: response });
       } catch (error) {
         console.error('Failed to fetch notifications:', error);
         dispatch({ type: 'SET_ERROR', payload: 'Failed to load notifications.' });
@@ -224,18 +247,31 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [state.notifications]);
 
-  const refreshNotifications = useCallback(async () => {
+  const refreshNotifications = useCallback(async (filter: NotificationFilter = NotificationFilter.All) => {
     if (!isAuthenticated) return;
     
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      const notifications = await NotificationsApi.getNotifications();
-      dispatch({ type: 'SET_NOTIFICATIONS', payload: notifications });
+      const response = await NotificationsApi.getNotifications(filter, 0, 10);
+      dispatch({ type: 'SET_NOTIFICATIONS', payload: response });
     } catch (error) {
       console.error('Failed to refresh notifications:', error);
       dispatch({ type: 'SET_ERROR', payload: 'Failed to refresh notifications.' });
     }
   }, [isAuthenticated]);
+
+  const loadMoreNotifications = useCallback(async (filter: NotificationFilter = NotificationFilter.All) => {
+    if (!isAuthenticated || state.isLoadingMore || !state.hasMore) return;
+    
+    dispatch({ type: 'SET_LOADING_MORE', payload: true });
+    try {
+      const response = await NotificationsApi.getNotifications(filter, state.notifications.length, 10);
+      dispatch({ type: 'LOAD_MORE_NOTIFICATIONS', payload: response });
+    } catch (error) {
+      console.error('Failed to load more notifications:', error);
+      dispatch({ type: 'SET_ERROR', payload: 'Failed to load more notifications.' });
+    }
+  }, [isAuthenticated, state.isLoadingMore, state.hasMore, state.notifications.length]);
 
   const clearError = useCallback(() => {
     dispatch({ type: 'SET_ERROR', payload: null });
@@ -243,7 +279,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
 
   return (
     <NotificationsContext.Provider
-      value={{ ...state, markAsRead, markAllAsRead, refreshNotifications, clearError }}
+      value={{ ...state, markAsRead, markAllAsRead, refreshNotifications, loadMoreNotifications, clearError }}
     >
       {children}
     </NotificationsContext.Provider>
