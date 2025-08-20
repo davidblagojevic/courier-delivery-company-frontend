@@ -285,6 +285,25 @@ export const CreateOrderPage: React.FC = () => {
                       onClick={() => setSelectedVehicleId(vehicle.vehicleId)}
                     >
                       <CardContent>
+                        {vehicle.vehicleImage && (
+                          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
+                            <img
+                              src={vehicle.vehicleImage}
+                              alt={vehicle.name}
+                              style={{
+                                width: '100%',
+                                maxWidth: '200px',
+                                height: '120px',
+                                objectFit: 'cover',
+                                borderRadius: '8px',
+                              }}
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          </Box>
+                        )}
+                        
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                           <LocalShipping sx={{ mr: 1 }} />
                           <Typography variant="h6" component="div">
