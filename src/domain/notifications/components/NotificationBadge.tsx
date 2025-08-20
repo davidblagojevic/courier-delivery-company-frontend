@@ -168,7 +168,7 @@ export const NotificationBadge: React.FC = () => {
                       </Typography>
                       {notification.orderId && (
                         <Typography variant="caption" color="text.secondary" component="span" sx={{ ml: 1 }}>
-                          • Order #{notification.orderId.substring(0, 8)}
+                          • Order #{notification.orderId.substring(0, 8)}...
                         </Typography>
                       )}
                     </span>

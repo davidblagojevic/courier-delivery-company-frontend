@@ -245,7 +245,7 @@ export const NotificationsPage: React.FC = () => {
                         <Box display="flex" alignItems="center" gap={1} mt={0.5}>
                           {notification.orderId && (
                             <Chip
-                              label={`Order #${notification.orderId.substring(0, 8)}`}
+                              label={`Order #${notification.orderId}`}
                               size="small"
                               variant="outlined"
                             />

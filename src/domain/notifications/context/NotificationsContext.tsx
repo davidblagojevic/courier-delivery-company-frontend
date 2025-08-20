@@ -96,6 +96,8 @@ const notificationsReducer = (
 interface NotificationsContextType extends NotificationsState {
   markAsRead: (notificationId: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
+  refreshNotifications: () => Promise<void>;
+  clearError: () => void;
 }
 
 const NotificationsContext = createContext<NotificationsContextType | null>(null);
@@ -222,9 +224,26 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [state.notifications]);
 
+  const refreshNotifications = useCallback(async () => {
+    if (!isAuthenticated) return;
+    
+    dispatch({ type: 'SET_LOADING', payload: true });
+    try {
+      const notifications = await NotificationsApi.getNotifications();
+      dispatch({ type: 'SET_NOTIFICATIONS', payload: notifications });
+    } catch (error) {
+      console.error('Failed to refresh notifications:', error);
+      dispatch({ type: 'SET_ERROR', payload: 'Failed to refresh notifications.' });
+    }
+  }, [isAuthenticated]);
+
+  const clearError = useCallback(() => {
+    dispatch({ type: 'SET_ERROR', payload: null });
+  }, []);
+
   return (
     <NotificationsContext.Provider
-      value={{ ...state, markAsRead, markAllAsRead }}
+      value={{ ...state, markAsRead, markAllAsRead, refreshNotifications, clearError }}
     >
       {children}
     </NotificationsContext.Provider>
