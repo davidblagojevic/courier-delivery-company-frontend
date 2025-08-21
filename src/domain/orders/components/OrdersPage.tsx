@@ -31,6 +31,7 @@ import {
 import { Search, Refresh, FilterList, ExpandMore, ExpandLess } from '@mui/icons-material';
 import { useAuth } from '../../authentication';
 import { axiosClient } from '../../../api/axiosClient';
+import { useNavigate } from 'react-router-dom';
 
 interface Order {
   id: string;
@@ -81,6 +82,7 @@ export const OrdersPage: React.FC = () => {
   const { token, userInfo } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<PagedOrdersResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -330,8 +332,14 @@ export const OrdersPage: React.FC = () => {
                             sx={{ 
                               fontFamily: 'monospace',
                               wordBreak: 'break-all',
-                              fontSize: isMobile ? '0.7rem' : '0.875rem'
+                              fontSize: isMobile ? '0.7rem' : '0.875rem',
+                              cursor: 'pointer',
+                              color: 'primary.main',
+                              '&:hover': {
+                                textDecoration: 'underline'
+                              }
                             }}
+                            onClick={() => navigate(`/orders/${order.id}`)}
                           >
                             {order.id}
                           </Typography>

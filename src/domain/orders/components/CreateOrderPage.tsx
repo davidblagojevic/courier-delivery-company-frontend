@@ -123,13 +123,8 @@ export const CreateOrderPage: React.FC = () => {
 
       const response = await axiosClient.post('/api/orders', orderData);
       
-      // Navigate to orders page or show success message
-      navigate('/orders', { 
-        state: { 
-          message: `Order created successfully! Order ID: ${response.data}`,
-          type: 'success'
-        }
-      });
+      // Navigate to order details page with success state
+      navigate(`/orders/${response.data}`, { state: { orderCreated: true } });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create order');
     } finally {
