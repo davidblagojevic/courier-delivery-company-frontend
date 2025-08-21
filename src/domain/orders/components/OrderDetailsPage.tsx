@@ -25,6 +25,8 @@ import {
   Description as DescriptionIcon,
 } from '@mui/icons-material';
 import { axiosClient } from '../../../api/axiosClient';
+import { useAuth } from '../../authentication';
+import { AssignOrderToCourier } from '../../../shared/components';
 
 interface VehicleInfo {
   id: string;
@@ -85,10 +87,13 @@ export const OrderDetailsPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const { userInfo } = useAuth();
   const [order, setOrder] = useState<OrderDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [showAssignCourier, setShowAssignCourier] = useState(false);
+  const [markingDelivered, setMarkingDelivered] = useState(false);
 
   // Check if we came from order creation
   useEffect(() => {
@@ -119,6 +124,56 @@ export const OrderDetailsPage: React.FC = () => {
 
     fetchOrderDetails();
   }, [orderId]);
+
+  const handleAssignmentComplete = () => {
+    setShowAssignCourier(false);
+    // Refresh order data to show updated status
+    if (orderId) {
+      const fetchOrderDetails = async () => {
+        try {
+          const response = await axiosClient.get(`/api/orders/${orderId}`);
+          setOrder(response.data);
+        } catch (err) {
+
+        }
+      };
+      fetchOrderDetails();
+    }
+  };
+
+  // Check if user can assign couriers (is admin and order is created status)
+  const canAssignCourier = () => {
+    return userInfo?.roles.includes('Administrator') && 
+           order?.orderStatus.toLowerCase() === 'created';
+  };
+
+  // Check if courier can mark order as delivered
+  const canMarkAsDelivered = () => {
+    return userInfo?.roles.includes('Courier') && 
+           order?.orderStatus.toLowerCase() === 'assignedtocourier' &&
+           order?.courierId === userInfo?.id;
+  };
+
+  const handleMarkAsDelivered = async () => {
+    if (!order) return;
+
+    setMarkingDelivered(true);
+    setError(null);
+
+    try {
+      await axiosClient.post(`/api/orders/${order.id}/delivered`);
+      
+      const response = await axiosClient.get(`/api/orders/${order.id}`);
+      setOrder(response.data);
+      
+      setShowSuccessMessage(true);
+      setTimeout(() => setShowSuccessMessage(false), 5000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to mark order as delivered');
+    } finally {
+      setMarkingDelivered(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -463,6 +518,73 @@ export const OrderDetailsPage: React.FC = () => {
           </Card>
         </Box>
       </Box>
+
+      {/* Action Buttons */}
+      {(canAssignCourier() || canMarkAsDelivered()) && (
+        <Box
+          sx={{
+            position: 'fixed',
+            bottom: 20,
+            right: 20,
+            zIndex: 1000,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+          }}
+        >
+          {/* Assign Courier Button for Admins */}
+          {canAssignCourier() && (
+            <Button
+              variant="contained"
+              size="large"
+              startIcon={<Person />}
+              onClick={() => setShowAssignCourier(true)}
+              sx={{
+                borderRadius: 3,
+                px: 3,
+                py: 1.5,
+                fontSize: '1rem',
+                fontWeight: 600,
+                boxShadow: 3,
+              }}
+            >
+              Assign Courier
+            </Button>
+          )}
+
+          {/* Mark as Delivered Button for Couriers */}
+          {canMarkAsDelivered() && (
+            <Button
+              variant="contained"
+              color="success"
+              size="large"
+              startIcon={markingDelivered ? <CircularProgress size={16} /> : <LocalShipping />}
+              onClick={handleMarkAsDelivered}
+              disabled={markingDelivered}
+              sx={{
+                borderRadius: 3,
+                px: 3,
+                py: 1.5,
+                fontSize: '1rem',
+                fontWeight: 600,
+                boxShadow: 3,
+              }}
+            >
+              {markingDelivered ? 'Marking as Delivered...' : 'Mark as Delivered'}
+            </Button>
+          )}
+        </Box>
+      )}
+
+      {/* Assign Courier Modal */}
+      {showAssignCourier && order && (
+        <AssignOrderToCourier
+          orderId={order.id}
+          estimatedDeliveryDate={order.estimatedDeliveryDate}
+          onAssignmentComplete={handleAssignmentComplete}
+          onCancel={() => setShowAssignCourier(false)}
+        />
+      )}
     </Container>
   );
 };
