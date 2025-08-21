@@ -40,7 +40,8 @@ interface Order {
   totalPrice: number;
   vehicleId: string;
   orderDate: string;
-  deliveryDate: string;
+  estimatedDeliveryDate: string;
+  actualDeliveryDate?: string;
   description?: string;
 }
 
@@ -233,7 +234,8 @@ export const OrdersPage: React.FC = () => {
                     size={isMobile ? "small" : "medium"}
                   >
                     <MenuItem value="orderDate">Order Date</MenuItem>
-                    <MenuItem value="deliveryDate">Delivery Date</MenuItem>
+                    <MenuItem value="estimatedDeliveryDate">Estimated Delivery Date</MenuItem>
+                    <MenuItem value="actualDeliveryDate">Actual Delivery Date</MenuItem>
                     <MenuItem value="orderStatus">Status</MenuItem>
                     <MenuItem value="totalPrice">Price</MenuItem>
                     {isAdmin && <MenuItem value="customerId">Customer</MenuItem>}
@@ -304,14 +306,19 @@ export const OrdersPage: React.FC = () => {
                         Order Date
                       </TableCell>
                       <TableCell 
-                        onClick={() => handleSort('deliveryDate')} 
+                        onClick={() => handleSort('estimatedDeliveryDate')} 
                         sx={{ cursor: 'pointer', minWidth: isMobile ? 100 : 120 }}
                       >
-                        Delivery Date
+                        Estimated Delivery
+                      </TableCell>
+                      <TableCell 
+                        onClick={() => handleSort('actualDeliveryDate')} 
+                        sx={{ cursor: 'pointer', minWidth: isMobile ? 100 : 120 }}
+                      >
+                        Actual Delivery
                       </TableCell>
                       {isAdmin && <TableCell sx={{ minWidth: 200 }}>Customer ID</TableCell>}
                       {(isAdmin || isCourier) && <TableCell sx={{ minWidth: 200 }}>Courier ID</TableCell>}
-                      <TableCell sx={{ minWidth: isMobile ? 120 : 150 }}>Description</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -356,11 +363,23 @@ export const OrdersPage: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           <Typography variant={isMobile ? "caption" : "body2"}>
-                            {new Date(order.deliveryDate).toLocaleDateString(undefined, {
+                            {new Date(order.estimatedDeliveryDate).toLocaleDateString(undefined, {
                               month: 'short',
                               day: 'numeric',
                               year: isMobile ? '2-digit' : 'numeric'
                             })}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant={isMobile ? "caption" : "body2"}>
+                            {order.actualDeliveryDate ? 
+                              new Date(order.actualDeliveryDate).toLocaleDateString(undefined, {
+                                month: 'short',
+                                day: 'numeric',
+                                year: isMobile ? '2-digit' : 'numeric'
+                              }) : 
+                              <span style={{ color: '#999' }}>Not delivered</span>
+                            }
                           </Typography>
                         </TableCell>
                         {isAdmin && (
@@ -400,23 +419,6 @@ export const OrdersPage: React.FC = () => {
                             )}
                           </TableCell>
                         )}
-                        <TableCell>
-                          <Typography 
-                            variant={isMobile ? "caption" : "body2"}
-                            sx={{
-                              maxWidth: isMobile ? 120 : 200,
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {order.description || (
-                              <span style={{ color: theme.palette.text.secondary }}>
-                                No description
-                              </span>
-                            )}
-                          </Typography>
-                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
