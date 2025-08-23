@@ -28,7 +28,7 @@ import {
   Menu as MenuIcon,
   Notifications,
 } from '@mui/icons-material';
-import { useAuth } from '../../../../authentication';
+import { useAuth, isCustomer } from '../../../../authentication';
 import { NotificationBadge } from '../../../../notifications/components/NotificationBadge';
 
 export const Header: React.FC = () => {
@@ -67,7 +67,7 @@ export const Header: React.FC = () => {
     return `${userInfo.email} (${primaryRole})`;
   };
 
-  const isCustomer = userInfo?.roles.includes('Customer');
+  const userIsCustomer = isCustomer(userInfo?.roles);
 
   const menuItems = [
     { label: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
@@ -115,7 +115,7 @@ export const Header: React.FC = () => {
               ))}
               
               {/* Create Order button for customers only */}
-              {isCustomer && (
+              {userIsCustomer && (
                 <Button
                   color="inherit"
                   variant="outlined"
@@ -220,7 +220,7 @@ export const Header: React.FC = () => {
             ))}
             
             {/* Create Order for customers */}
-            {isCustomer && (
+            {userIsCustomer && (
               <ListItem
                 onClick={() => handleNavigate('/orders/create')}
                 sx={{

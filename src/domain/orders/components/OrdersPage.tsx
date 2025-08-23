@@ -29,9 +29,10 @@ import {
   Collapse,
 } from '@mui/material';
 import { Search, Refresh, FilterList, ExpandMore, ExpandLess } from '@mui/icons-material';
-import { useAuth } from '../../authentication';
+import { useAuth, isAdmin, isCourier, isCustomer } from '../../authentication';
 import { axiosClient } from '../../../api/axiosClient';
 import { useNavigate } from 'react-router-dom';
+import { getStatusColor } from '../types';
 
 interface Order {
   id: string;
@@ -61,22 +62,6 @@ interface PagedOrdersResponse {
   }>;
 }
 
-const getStatusColor = (status: string) => {
-  switch (status.toLowerCase()) {
-    case 'pending':
-      return 'warning';
-    case 'assigned':
-      return 'info';
-    case 'delivered':
-      return 'success';
-    case 'completed':
-      return 'success';
-    case 'cancelled':
-      return 'error';
-    default:
-      return 'default';
-  }
-};
 
 export const OrdersPage: React.FC = () => {
   const { token, userInfo } = useAuth();
@@ -102,9 +87,9 @@ export const OrdersPage: React.FC = () => {
     );
   }
 
-  const isAdmin = userInfo.roles.includes('Administrator');
-  const isCourier = userInfo.roles.includes('Courier');
-  const isCustomer = userInfo.roles.includes('Customer');
+  const userIsAdmin = isAdmin(userInfo.roles);
+  const userIsCourier = isCourier(userInfo.roles);
+  const userIsCustomer = isCustomer(userInfo.roles);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -157,9 +142,9 @@ export const OrdersPage: React.FC = () => {
   };
 
   const getRoleBasedTitle = () => {
-    if (isAdmin) return 'All Orders (Administrator)';
-    if (isCourier) return 'My Assigned Orders';
-    if (isCustomer) return 'My Orders';
+    if (userIsAdmin) return 'All Orders (Administrator)';
+    if (userIsCourier) return 'My Assigned Orders';
+    if (userIsCustomer) return 'My Orders';
     return 'Orders';
   };
 
@@ -240,8 +225,8 @@ export const OrdersPage: React.FC = () => {
                     <MenuItem value="actualDeliveryDate">Actual Delivery Date</MenuItem>
                     <MenuItem value="orderStatus">Status</MenuItem>
                     <MenuItem value="totalPrice">Price</MenuItem>
-                    {isAdmin && <MenuItem value="customerId">Customer</MenuItem>}
-                    {isAdmin && <MenuItem value="courierId">Courier</MenuItem>}
+                    {userIsAdmin && <MenuItem value="customerId">Customer</MenuItem>}
+                    {userIsAdmin && <MenuItem value="courierId">Courier</MenuItem>}
                   </Select>
                 </FormControl>
 
@@ -319,8 +304,8 @@ export const OrdersPage: React.FC = () => {
                       >
                         Actual Delivery
                       </TableCell>
-                      {isAdmin && <TableCell sx={{ minWidth: 200 }}>Customer ID</TableCell>}
-                      {(isAdmin || isCourier) && <TableCell sx={{ minWidth: 200 }}>Courier ID</TableCell>}
+                      {userIsAdmin && <TableCell sx={{ minWidth: 200 }}>Customer ID</TableCell>}
+                      {(userIsAdmin || userIsCourier) && <TableCell sx={{ minWidth: 200 }}>Courier ID</TableCell>}
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -390,7 +375,7 @@ export const OrdersPage: React.FC = () => {
                             }
                           </Typography>
                         </TableCell>
-                        {isAdmin && (
+                        {userIsAdmin && (
                           <TableCell>
                             <Typography 
                               variant={isMobile ? "caption" : "body2"} 
@@ -404,7 +389,7 @@ export const OrdersPage: React.FC = () => {
                             </Typography>
                           </TableCell>
                         )}
-                        {(isAdmin || isCourier) && (
+                        {(userIsAdmin || userIsCourier) && (
                           <TableCell>
                             {order.courierId ? (
                               <Typography 

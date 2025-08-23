@@ -26,7 +26,7 @@ import {
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { useAuth } from '../../authentication';
+import { useAuth, isCustomer } from '../../authentication';
 import { axiosClient } from '../../../api/axiosClient';
 import { useNavigate } from 'react-router-dom';
 import { AddressAutocomplete } from '../../../shared/components';
@@ -62,13 +62,13 @@ export const CreateOrderPage: React.FC = () => {
   const [step, setStep] = useState<'details' | 'vehicles'>('details');
 
   // Check if user is customer
-  const isCustomer = userInfo?.roles.includes('Customer');
+  const userIsCustomer = isCustomer(userInfo?.roles);
 
   useEffect(() => {
-    if (!isCustomer) {
+    if (!userIsCustomer) {
       navigate('/dashboard');
     }
-  }, [isCustomer, navigate]);
+  }, [userIsCustomer, navigate]);
 
   const handleGetAvailableVehicles = async () => {
     if (!collectionAddress || !deliveryAddress) {
@@ -138,7 +138,7 @@ export const CreateOrderPage: React.FC = () => {
     setAvailableVehicles([]);
   };
 
-  if (!isCustomer) {
+  if (!userIsCustomer) {
     return (
       <Alert severity="error">
         Access denied. Only customers can create orders.

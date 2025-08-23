@@ -23,60 +23,25 @@ import {
   Nature,
   Person,
   Description as DescriptionIcon,
+  RateReview,
 } from '@mui/icons-material';
 import { axiosClient } from '../../../api/axiosClient';
-import { useAuth } from '../../authentication';
+import { useAuth, isAdmin, isCustomer, isCourier } from '../../authentication';
 import { AssignOrderToCourier } from '../../../shared/components';
+import { FeedbackForm } from './FeedbackForm';
+import { FeedbackDisplay } from './FeedbackDisplay';
+import { ordersApi } from '../api';
+import { 
+  OrderDetails, 
+  CreateFeedbackRequest, 
+  AddressInfo,
+  getStatusColor,
+  canAssignCourier as checkCanAssignCourier,
+  canMarkAsDelivered as checkCanMarkAsDelivered,
+  canMarkAsCompleted as checkCanMarkAsCompleted,
+  canAddFeedback as checkCanAddFeedback
+} from '../types';
 
-interface VehicleInfo {
-  id: string;
-  name: string;
-  maxWeight: number;
-  isZeroEmission: boolean;
-  vehicleImage: string | null;
-  pricePerKilometer: number;
-}
-
-interface AddressInfo {
-  id: string;
-  addressLine1: string;
-  addressLine2: string;
-  postCode: string;
-  town: string;
-}
-
-interface OrderDetails {
-  id: string;
-  customerId: string;
-  courierId?: string;
-  orderStatus: string;
-  totalPrice: number;
-  vehicleId: string;
-  orderDate: string;
-  estimatedDeliveryDate: string;
-  actualDeliveryDate?: string;
-  description?: string;
-  vehicle: VehicleInfo;
-  collectionAddress: AddressInfo;
-  deliveryAddress: AddressInfo;
-}
-
-const getStatusColor = (status: string) => {
-  switch (status.toLowerCase()) {
-    case 'created':
-      return 'info';
-    case 'assignedtocourier':
-      return 'warning';
-    case 'delivered':
-      return 'success';
-    case 'completed':
-      return 'success';
-    case 'cancelled':
-      return 'error';
-    default:
-      return 'default';
-  }
-};
 
 const formatAddress = (address: AddressInfo) => {
   const line2 = address.addressLine2 ? `, ${address.addressLine2}` : '';
@@ -94,6 +59,8 @@ export const OrderDetailsPage: React.FC = () => {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showAssignCourier, setShowAssignCourier] = useState(false);
   const [markingDelivered, setMarkingDelivered] = useState(false);
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [markingCompleted, setMarkingCompleted] = useState(false);
 
   // Check if we came from order creation
   useEffect(() => {
@@ -143,15 +110,39 @@ export const OrderDetailsPage: React.FC = () => {
 
   // Check if user can assign couriers (is admin and order is created status)
   const canAssignCourier = () => {
-    return userInfo?.roles.includes('Administrator') && 
-           order?.orderStatus.toLowerCase() === 'created';
+    return isAdmin(userInfo?.roles) && 
+           order && checkCanAssignCourier(order.orderStatus);
   };
 
   // Check if courier can mark order as delivered
   const canMarkAsDelivered = () => {
-    return userInfo?.roles.includes('Courier') && 
-           order?.orderStatus.toLowerCase() === 'assignedtocourier' &&
-           order?.courierId === userInfo?.id;
+    return isCourier(userInfo?.roles) && 
+           order && checkCanMarkAsDelivered(order.orderStatus) &&
+           order.courierId === userInfo?.id;
+  };
+
+  // Check if customer can mark order as completed
+  const canMarkAsCompleted = () => {
+    return isCustomer(userInfo?.roles) && 
+           order && checkCanMarkAsCompleted(order.orderStatus) &&
+           order.customerId === userInfo?.id;
+  };
+
+  // Check if customer can add feedback
+  const canAddFeedback = () => {
+    return isCustomer(userInfo?.roles) && 
+           order && checkCanAddFeedback(order.orderStatus) &&
+           order.customerId === userInfo?.id &&
+           !order.feedback;
+  };
+
+  // Check if user can view feedback
+  const canViewFeedback = () => {
+    return order?.feedback && (
+      isAdmin(userInfo?.roles) ||
+      order?.customerId === userInfo?.id ||
+      order?.courierId === userInfo?.id
+    );
   };
 
   const handleMarkAsDelivered = async () => {
@@ -173,6 +164,40 @@ export const OrderDetailsPage: React.FC = () => {
     } finally {
       setMarkingDelivered(false);
     }
+  };
+
+  const handleMarkAsCompleted = async () => {
+    if (!order) return;
+
+    setMarkingCompleted(true);
+    setError(null);
+
+    try {
+      await ordersApi.markAsCompleted(order.id);
+      
+      const response = await axiosClient.get(`/api/orders/${order.id}`);
+      setOrder(response.data);
+      
+      setShowSuccessMessage(true);
+      setTimeout(() => setShowSuccessMessage(false), 5000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to mark order as completed');
+    } finally {
+      setMarkingCompleted(false);
+    }
+  };
+
+  const handleFeedbackSubmit = async (feedback: CreateFeedbackRequest) => {
+    if (!order) return;
+
+    await ordersApi.addFeedback(order.id, feedback);
+    
+    // Refresh order data to show the new feedback
+    const response = await axiosClient.get(`/api/orders/${order.id}`);
+    setOrder(response.data);
+    
+    setShowSuccessMessage(true);
+    setTimeout(() => setShowSuccessMessage(false), 5000);
   };
 
   if (loading) {
@@ -519,8 +544,15 @@ export const OrderDetailsPage: React.FC = () => {
         </Box>
       </Box>
 
+      {/* Feedback Section */}
+      {canViewFeedback() && order?.feedback && (
+        <Box sx={{ mt: 4 }}>
+          <FeedbackDisplay feedback={order.feedback} />
+        </Box>
+      )}
+
       {/* Action Buttons */}
-      {(canAssignCourier() || canMarkAsDelivered()) && (
+      {(canAssignCourier() || canMarkAsDelivered() || canMarkAsCompleted() || canAddFeedback()) && (
         <Box
           sx={{
             position: 'fixed',
@@ -573,6 +605,49 @@ export const OrderDetailsPage: React.FC = () => {
               {markingDelivered ? 'Marking as Delivered...' : 'Mark as Delivered'}
             </Button>
           )}
+
+          {/* Mark as Completed Button for Customers */}
+          {canMarkAsCompleted() && (
+            <Button
+              variant="contained"
+              color="info"
+              size="large"
+              startIcon={markingCompleted ? <CircularProgress size={16} /> : <CheckCircle />}
+              onClick={handleMarkAsCompleted}
+              disabled={markingCompleted}
+              sx={{
+                borderRadius: 3,
+                px: 3,
+                py: 1.5,
+                fontSize: '1rem',
+                fontWeight: 600,
+                boxShadow: 3,
+              }}
+            >
+              {markingCompleted ? 'Marking as Completed...' : 'Mark as Completed'}
+            </Button>
+          )}
+
+          {/* Add Feedback Button for Customers */}
+          {canAddFeedback() && (
+            <Button
+              variant="contained"
+              color="secondary"
+              size="large"
+              startIcon={<RateReview />}
+              onClick={() => setShowFeedbackForm(true)}
+              sx={{
+                borderRadius: 3,
+                px: 3,
+                py: 1.5,
+                fontSize: '1rem',
+                fontWeight: 600,
+                boxShadow: 3,
+              }}
+            >
+              Add Feedback
+            </Button>
+          )}
         </Box>
       )}
 
@@ -583,6 +658,16 @@ export const OrderDetailsPage: React.FC = () => {
           estimatedDeliveryDate={order.estimatedDeliveryDate}
           onAssignmentComplete={handleAssignmentComplete}
           onCancel={() => setShowAssignCourier(false)}
+        />
+      )}
+
+      {/* Feedback Form Modal */}
+      {showFeedbackForm && order && (
+        <FeedbackForm
+          orderId={order.id}
+          open={showFeedbackForm}
+          onClose={() => setShowFeedbackForm(false)}
+          onSubmit={handleFeedbackSubmit}
         />
       )}
     </Container>
