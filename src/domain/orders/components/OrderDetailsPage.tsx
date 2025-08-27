@@ -28,6 +28,7 @@ import {
 import { axiosClient } from '../../../api/axiosClient';
 import { useAuth, isAdmin, isCustomer, isCourier } from '../../authentication';
 import { AssignOrderToCourier } from '../../../shared/components';
+import { formatCurrency, formatPricePerUnit } from '../../../shared/utils';
 import { FeedbackForm } from './FeedbackForm';
 import { FeedbackDisplay } from './FeedbackDisplay';
 import { ordersApi } from '../api';
@@ -329,7 +330,7 @@ export const OrderDetailsPage: React.FC = () => {
                       Total Price
                     </Typography>
                     <Typography variant="h5" color="primary" sx={{ fontWeight: 700 }}>
-                      £{order.totalPrice.toFixed(2)}
+                      {formatCurrency(order.totalPrice)}
                     </Typography>
                   </Box>
 
@@ -535,7 +536,7 @@ export const OrderDetailsPage: React.FC = () => {
                     Price per Kilometer
                   </Typography>
                   <Typography variant="h6" color="success.main" sx={{ fontWeight: 600 }}>
-                    £{order.vehicle.pricePerKilometer.toFixed(2)}/km
+                    {formatPricePerUnit(order.vehicle.pricePerKilometer, 'km')}
                   </Typography>
                 </Box>
               </Stack>

@@ -27,8 +27,11 @@ import {
   Add,
   Menu as MenuIcon,
   Notifications,
+  DirectionsCar,
+  People,
+  Schedule,
 } from '@mui/icons-material';
-import { useAuth, isCustomer } from '../../../../authentication';
+import { useAuth, isCustomer, isAdmin } from '../../../../authentication';
 import { NotificationBadge } from '../../../../notifications/components/NotificationBadge';
 
 export const Header: React.FC = () => {
@@ -68,12 +71,19 @@ export const Header: React.FC = () => {
   };
 
   const userIsCustomer = isCustomer(userInfo?.roles);
+  const userIsAdmin = isAdmin(userInfo?.roles);
 
   const menuItems = [
     { label: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
     { label: 'Orders', icon: <LocalShipping />, path: '/orders' },
     { label: 'Notifications', icon: <Notifications />, path: '/notifications' },
     { label: 'Settings', icon: <Settings />, path: '/settings' },
+  ];
+
+  const adminMenuItems = [
+    { label: 'Vehicles', icon: <DirectionsCar />, path: '/admin/vehicles' },
+    { label: 'Users', icon: <People />, path: '/admin/users' },
+    { label: 'Availability Rules', icon: <Schedule />, path: '/admin/vehicle-availability-rules' },
   ];
 
   return (
@@ -100,6 +110,22 @@ export const Header: React.FC = () => {
           {!isMobile && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mr: 2 }}>
               {menuItems.map((item) => (
+                <Button
+                  key={item.path}
+                  color="inherit"
+                  startIcon={item.icon}
+                  onClick={() => navigate(item.path)}
+                  sx={{ 
+                    textTransform: 'none',
+                    backgroundColor: location.pathname === item.path ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
+                  }}
+                >
+                  {item.label}
+                </Button>
+              ))}
+              
+              {/* Admin menu items */}
+              {userIsAdmin && adminMenuItems.map((item) => (
                 <Button
                   key={item.path}
                   color="inherit"
@@ -199,6 +225,28 @@ export const Header: React.FC = () => {
           </Typography>
           <List>
             {menuItems.map((item) => (
+              <ListItem
+                key={item.path}
+                onClick={() => handleNavigate(item.path)}
+                sx={{
+                  cursor: 'pointer',
+                  borderRadius: 1,
+                  mb: 1,
+                  backgroundColor: location.pathname === item.path ? 'action.selected' : 'transparent',
+                  '&:hover': {
+                    backgroundColor: 'action.hover',
+                  },
+                }}
+              >
+                <ListItemIcon>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText primary={item.label} />
+              </ListItem>
+            ))}
+            
+            {/* Admin menu items */}
+            {userIsAdmin && adminMenuItems.map((item) => (
               <ListItem
                 key={item.path}
                 onClick={() => handleNavigate(item.path)}

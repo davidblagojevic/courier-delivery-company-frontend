@@ -30,6 +30,7 @@ import { useAuth, isCustomer } from '../../authentication';
 import { axiosClient } from '../../../api/axiosClient';
 import { useNavigate } from 'react-router-dom';
 import { AddressAutocomplete } from '../../../shared/components';
+import { formatCurrency } from '../../../shared/utils';
 
 interface AvailableVehicle {
   vehicleId: string;
@@ -119,6 +120,10 @@ export const CreateOrderPage: React.FC = () => {
         collectionAddressId,
         deliveryAddressId,
         description: description || undefined,
+        // Include scheduled delivery date if "Schedule for Later" was selected
+        ...(deliveryType === 'prebook' && scheduledDelivery && {
+          deliveryByUtc: scheduledDelivery.toISOString()
+        }),
       };
 
       const response = await axiosClient.post('/api/orders', orderData);
@@ -322,7 +327,7 @@ export const CreateOrderPage: React.FC = () => {
                         <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
                           <AttachMoney />
                           <Typography variant="h6" color="primary" component="div">
-                            £{vehicle.price.toFixed(2)}
+                            {formatCurrency(vehicle.price)}
                           </Typography>
                         </Box>
                       </CardContent>

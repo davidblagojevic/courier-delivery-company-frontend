@@ -5,6 +5,9 @@ import { LoginPage } from '../domain/authentication';
 import { DashboardPage } from '../domain/app';
 import { OrdersPage, CreateOrderPage, OrderDetailsPage } from '../domain/orders';
 import { NotificationsPage } from '../domain/notifications/components/NotificationsPage';
+import { VehicleManagementPage, VehicleAvailabilityRuleManagementPage } from '../domain/vehicles';
+import { UserManagementPage } from '../domain/users';
+import { SettingsPage } from '../domain/settings';
 import { ProtectedRoute } from './protected.route';
 
 const AppRouter: React.FC = () => {
@@ -57,6 +60,38 @@ const AppRouter: React.FC = () => {
           element={
             <ProtectedRoute>
               <NotificationsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/vehicles"
+          element={
+            <ProtectedRoute requireAdmin>
+              <VehicleManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute requireAdmin>
+              <UserManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/vehicle-availability-rules"
+          element={
+            <ProtectedRoute requireAdmin>
+              <VehicleAvailabilityRuleManagementPage />
             </ProtectedRoute>
           }
         />
