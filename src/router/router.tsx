@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../domain/authentication';
-import { LoginPage } from '../domain/authentication';
+import { LoginPage, RegisterPage } from '../domain/authentication';
 import { DashboardPage } from '../domain/app';
 import { OrdersPage, CreateOrderPage, OrderDetailsPage } from '../domain/orders';
 import { NotificationsPage } from '../domain/notifications/components/NotificationsPage';
@@ -20,6 +20,10 @@ const AppRouter: React.FC = () => {
         <Route 
           path="/login" 
           element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" replace />} 
+        />
+        <Route 
+          path="/register" 
+          element={!isAuthenticated ? <RegisterPage /> : <Navigate to="/dashboard" replace />} 
         />
         
         {/* Protected routes */}

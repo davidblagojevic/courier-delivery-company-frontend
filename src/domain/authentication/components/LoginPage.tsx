@@ -9,9 +9,11 @@ import {
   Alert,
   CircularProgress,
   Container,
+  Link,
 } from '@mui/material';
 import { LoginOutlined } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface LoginCredentials {
   email: string;
@@ -20,6 +22,7 @@ interface LoginCredentials {
 
 export const LoginPage: React.FC = () => {
   const { login, isLoading, error, clearError } = useAuth();
+  const navigate = useNavigate();
   const [credentials, setCredentials] = useState<LoginCredentials>({
     email: '',
     password: '',
@@ -115,6 +118,21 @@ export const LoginPage: React.FC = () => {
                   'Login'
                 )}
               </Button>
+
+              <Box textAlign="center" mt={2}>
+                <Typography variant="body2" color="text.secondary">
+                  Don't have an account?{' '}
+                  <Link
+                    component="button"
+                    type="button"
+                    onClick={() => navigate('/register')}
+                    sx={{ cursor: 'pointer' }}
+                    disabled={isLoading}
+                  >
+                    Register here
+                  </Link>
+                </Typography>
+              </Box>
             </Box>
           </CardContent>
         </Card>
