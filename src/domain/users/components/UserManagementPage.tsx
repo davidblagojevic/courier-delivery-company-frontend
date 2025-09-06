@@ -47,8 +47,10 @@ import {
   AdminPanelSettings,
   LocalShipping,
   Person,
+  Add,
 } from '@mui/icons-material';
 import { useAuth } from '../../authentication';
+import { UserRole } from '../../authentication/types/userRoles';
 import { axiosClient } from '../../../api/axiosClient';
 
 interface AddressInfo {
@@ -85,17 +87,27 @@ interface PagedUsersResponse {
 
 interface UserFormData {
   id?: string;
+  email?: string;
+  password?: string;
   contactPhone?: string;
   workTitle?: string;
 }
 
+interface CreateUserFormData {
+  email: string;
+  password: string;
+  contactPhone?: string;
+  workTitle?: string;
+  role: UserRole.ADMINISTRATOR | UserRole.COURIER;
+}
+
 const getRoleIcon = (role: string) => {
   switch (role) {
-    case 'Administrator':
+    case UserRole.ADMINISTRATOR:
       return <AdminPanelSettings fontSize="small" />;
-    case 'Courier':
+    case UserRole.COURIER:
       return <LocalShipping fontSize="small" />;
-    case 'Customer':
+    case UserRole.CUSTOMER:
       return <Person fontSize="small" />;
     default:
       return <People fontSize="small" />;
@@ -104,11 +116,11 @@ const getRoleIcon = (role: string) => {
 
 const getRoleColor = (role: string) => {
   switch (role) {
-    case 'Administrator':
+    case UserRole.ADMINISTRATOR:
       return 'error';
-    case 'Courier':
+    case UserRole.COURIER:
       return 'info';
-    case 'Customer':
+    case UserRole.CUSTOMER:
       return 'success';
     default:
       return 'default';
@@ -131,8 +143,17 @@ export const UserManagementPage: React.FC = () => {
   
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [formData, setFormData] = useState<UserFormData>({});
+  const [createFormData, setCreateFormData] = useState<CreateUserFormData>({
+    email: '',
+    password: '',
+    contactPhone: '',
+    workTitle: '',
+    role: UserRole.COURIER
+  });
   const [formLoading, setFormLoading] = useState(false);
+  const [createFormLoading, setCreateFormLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const fetchUsers = useCallback(async () => {
@@ -211,6 +232,60 @@ export const UserManagementPage: React.FC = () => {
     }
   };
 
+  const handleCreateUser = () => {
+    setCreateFormData({
+      email: '',
+      password: '',
+      contactPhone: '',
+      workTitle: '',
+      role: UserRole.COURIER
+    });
+    setCreateDialogOpen(true);
+  };
+
+  const handleCloseCreateDialog = () => {
+    setCreateDialogOpen(false);
+    setCreateFormData({
+      email: '',
+      password: '',
+      contactPhone: '',
+      workTitle: '',
+      role: UserRole.COURIER
+    });
+  };
+
+  const handleCreateSubmit = async () => {
+    setCreateFormLoading(true);
+    setError(null);
+
+    try {
+      const endpoint = createFormData.role === UserRole.ADMINISTRATOR 
+        ? '/api/identity/register/administrator'
+        : '/api/identity/register/courier';
+
+      const payload = createFormData.role === UserRole.ADMINISTRATOR
+        ? {
+            email: createFormData.email,
+            password: createFormData.password,
+            workTitle: createFormData.workTitle || ''
+          }
+        : {
+            email: createFormData.email,
+            password: createFormData.password,
+            contactPhone: createFormData.contactPhone || ''
+          };
+
+      await axiosClient.post(endpoint, payload);
+
+      handleCloseCreateDialog();
+      fetchUsers();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create user');
+    } finally {
+      setCreateFormLoading(false);
+    }
+  };
+
   if (!token) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
@@ -237,15 +312,26 @@ export const UserManagementPage: React.FC = () => {
             >
               User Management
             </Typography>
-            <Button
-              variant="outlined"
-              startIcon={!isMobile ? <Refresh /> : undefined}
-              onClick={fetchUsers}
-              disabled={loading}
-              size={isMobile ? "small" : "medium"}
-            >
-              {isMobile ? <Refresh /> : 'Refresh'}
-            </Button>
+            <Box display="flex" gap={1}>
+              <Button
+                variant="contained"
+                startIcon={!isMobile ? <Add /> : undefined}
+                onClick={handleCreateUser}
+                disabled={loading}
+                size={isMobile ? "small" : "medium"}
+              >
+                {isMobile ? <Add /> : 'Add User'}
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={!isMobile ? <Refresh /> : undefined}
+                onClick={fetchUsers}
+                disabled={loading}
+                size={isMobile ? "small" : "medium"}
+              >
+                {isMobile ? <Refresh /> : 'Refresh'}
+              </Button>
+            </Box>
           </Box>
 
           {/* Mobile: Collapsible filters */}
@@ -292,9 +378,9 @@ export const UserManagementPage: React.FC = () => {
                     size={isMobile ? "small" : "medium"}
                   >
                     <MenuItem value="">All Roles</MenuItem>
-                    <MenuItem value="Administrator">Administrator</MenuItem>
-                    <MenuItem value="Customer">Customer</MenuItem>
-                    <MenuItem value="Courier">Courier</MenuItem>
+                    <MenuItem value={UserRole.ADMINISTRATOR}>Administrator</MenuItem>
+                    <MenuItem value={UserRole.CUSTOMER}>Customer</MenuItem>
+                    <MenuItem value={UserRole.COURIER}>Courier</MenuItem>
                   </Select>
                 </FormControl>
               </Box>
@@ -536,6 +622,91 @@ export const UserManagementPage: React.FC = () => {
             disabled={formLoading}
           >
             {formLoading ? <CircularProgress size={20} /> : 'Update'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Create User Dialog */}
+      <Dialog 
+        open={createDialogOpen} 
+        onClose={handleCloseCreateDialog} 
+        maxWidth="sm" 
+        fullWidth
+        fullScreen={isMobile}
+      >
+        <DialogTitle>
+          Create New User
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Alert severity="info" sx={{ mb: 2 }}>
+              Create a new Administrator or Courier account. All fields marked with * are required.
+            </Alert>
+            
+            <FormControl fullWidth required>
+              <InputLabel>Role</InputLabel>
+              <Select
+                value={createFormData.role}
+                label="Role"
+                onChange={(e) => setCreateFormData(prev => ({ 
+                  ...prev, 
+                  role: e.target.value as UserRole.ADMINISTRATOR | UserRole.COURIER 
+                }))}
+              >
+                <MenuItem value={UserRole.ADMINISTRATOR}>Administrator</MenuItem>
+                <MenuItem value={UserRole.COURIER}>Courier</MenuItem>
+              </Select>
+            </FormControl>
+
+            <TextField
+              fullWidth
+              required
+              label="Email"
+              type="email"
+              value={createFormData.email}
+              onChange={(e) => setCreateFormData(prev => ({ ...prev, email: e.target.value }))}
+              placeholder="Enter email address"
+            />
+
+            <TextField
+              fullWidth
+              required
+              label="Password"
+              type="password"
+              value={createFormData.password}
+              onChange={(e) => setCreateFormData(prev => ({ ...prev, password: e.target.value }))}
+              placeholder="Enter password"
+            />
+            
+            {createFormData.role === UserRole.ADMINISTRATOR && (
+              <TextField
+                fullWidth
+                label="Work Title"
+                value={createFormData.workTitle || ''}
+                onChange={(e) => setCreateFormData(prev => ({ ...prev, workTitle: e.target.value }))}
+                placeholder="Enter work title (optional)"
+              />
+            )}
+
+            {createFormData.role === UserRole.COURIER && (
+              <TextField
+                fullWidth
+                label="Contact Phone"
+                value={createFormData.contactPhone || ''}
+                onChange={(e) => setCreateFormData(prev => ({ ...prev, contactPhone: e.target.value }))}
+                placeholder="Enter phone number (optional)"
+              />
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseCreateDialog}>Cancel</Button>
+          <Button 
+            onClick={handleCreateSubmit} 
+            variant="contained" 
+            disabled={createFormLoading || !createFormData.email || !createFormData.password}
+          >
+            {createFormLoading ? <CircularProgress size={20} /> : 'Create User'}
           </Button>
         </DialogActions>
       </Dialog>
