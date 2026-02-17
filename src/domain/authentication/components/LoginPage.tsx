@@ -119,7 +119,19 @@ export const LoginPage: React.FC = () => {
                 )}
               </Button>
 
-              <Box textAlign="center" mt={2}>
+              <Box textAlign="center" mt={2} display="flex" flexDirection="column" gap={1}>
+                <Typography variant="body2" color="text.secondary">
+                  <Link
+                    component="button"
+                    type="button"
+                    onClick={() => navigate('/forgot-password')}
+                    sx={{ cursor: 'pointer', textDecoration: 'none' }}
+                    disabled={isLoading}
+                  >
+                    Forgot your password?
+                  </Link>
+                </Typography>
+                
                 <Typography variant="body2" color="text.secondary">
                   Don't have an account?{' '}
                   <Link

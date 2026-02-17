@@ -372,19 +372,6 @@ export const OrderDetailsPage: React.FC = () => {
                     </Stack>
                   )}
 
-                  {order.courierId && (
-                    <Stack spacing={1}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Person color="action" fontSize="small" />
-                        <Typography variant="body2" color="text.secondary">
-                          Courier ID
-                        </Typography>
-                      </Box>
-                      <Typography variant="body1" sx={{ fontFamily: 'monospace', fontWeight: 500 }}>
-                        {order.courierId}
-                      </Typography>
-                    </Stack>
-                  )}
                 </Box>
 
                 {order.description && (
@@ -458,6 +445,69 @@ export const OrderDetailsPage: React.FC = () => {
                 </CardContent>
               </Card>
             </Box>
+
+            {/* Courier Details */}
+            {order.courier && (
+              <Card
+                elevation={0}
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 3,
+                  overflow: 'hidden'
+                }}
+              >
+                <Box
+                  sx={{
+                    bgcolor: 'grey.100',
+                    p: 3,
+                    borderBottom: '1px solid',
+                    borderColor: 'divider'
+                  }}
+                >
+                  <Typography variant="h5" sx={{ fontWeight: 600, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Person />
+                    Courier Details
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary">
+                    Assigned courier information
+                  </Typography>
+                </Box>
+
+                <CardContent sx={{ p: 4 }}>
+                  <Box sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                    gap: 3
+                  }}>
+                    <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                        Email
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                        {order.courier.email}
+                      </Typography>
+                    </Box>
+
+                    {order.courier.contactPhone && (
+                      <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                          Contact Phone
+                        </Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                          {order.courier.contactPhone}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Feedback Section */}
+            {canViewFeedback() && order?.feedback && (
+              <FeedbackDisplay feedback={order.feedback} />
+            )}
           </Stack>
         </Box>
 
@@ -542,15 +592,10 @@ export const OrderDetailsPage: React.FC = () => {
               </Stack>
             </CardContent>
           </Card>
+
         </Box>
       </Box>
 
-      {/* Feedback Section */}
-      {canViewFeedback() && order?.feedback && (
-        <Box sx={{ mt: 4 }}>
-          <FeedbackDisplay feedback={order.feedback} />
-        </Box>
-      )}
 
       {/* Action Buttons */}
       {(canAssignCourier() || canMarkAsDelivered() || canMarkAsCompleted() || canAddFeedback()) && (

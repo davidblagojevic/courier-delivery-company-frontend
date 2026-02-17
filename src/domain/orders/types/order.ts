@@ -2,6 +2,12 @@ import { VehicleInfo } from './vehicle';
 import { AddressInfo } from './address';
 import { FeedbackInfo } from './feedback';
 
+export interface CourierInfo {
+  id: string;
+  email: string;
+  contactPhone?: string;
+}
+
 export interface OrderDetails {
   id: string;
   customerId: string;
@@ -17,4 +23,5 @@ export interface OrderDetails {
   collectionAddress: AddressInfo;
   deliveryAddress: AddressInfo;
   feedback?: FeedbackInfo;
+  courier?: CourierInfo;
 }
