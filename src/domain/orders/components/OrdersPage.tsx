@@ -31,7 +31,7 @@ import {
 import { Search, Refresh, FilterList, ExpandMore, ExpandLess } from '@mui/icons-material';
 import { useAuth, isAdmin, isCourier, isCustomer } from '../../authentication';
 import { axiosClient } from '../../../api/axiosClient';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getStatusColor } from '../types';
 
 interface Order {
@@ -68,10 +68,11 @@ export const OrdersPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [orders, setOrders] = useState<PagedOrdersResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [sortColumn, setSortColumn] = useState('orderDate');
   const [sortOrder, setSortOrder] = useState('desc');
   const [page, setPage] = useState(1);

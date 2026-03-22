@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -131,12 +132,13 @@ export const UserManagementPage: React.FC = () => {
   const { token } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
+  const [searchParams] = useSearchParams();
+
   const [users, setUsers] = useState<PagedUsersResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
+  const [roleFilter, setRoleFilter] = useState(searchParams.get('role') || '');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [filtersExpanded, setFiltersExpanded] = useState(!isMobile);
