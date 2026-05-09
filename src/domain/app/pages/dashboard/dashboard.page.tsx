@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Typography, Box, CircularProgress, Alert, Button } from '@mui/material';
 import { Refresh } from '@mui/icons-material';
-import { useAuth, isAdmin, isCustomer, isCourier } from '../../../authentication';
-import { axiosClient } from '../../../../api/axiosClient';
-import { DashboardResponse } from './types';
+import { useAuth, isAdmin, isCustomer, isCourier } from 'domain/authentication';
+import { api } from 'api';
+import { type DashboardResponse } from './types';
 import { AdminDashboard, CustomerDashboard, CourierDashboard } from './components';
 
 export const DashboardPage: React.FC = () => {
@@ -16,7 +16,7 @@ export const DashboardPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axiosClient.get<DashboardResponse>('/api/dashboard');
+      const response = await api.get<DashboardResponse>('/api/dashboard');
       setData(response.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load dashboard');

@@ -25,17 +25,19 @@ import {
   Description as DescriptionIcon,
   RateReview,
 } from '@mui/icons-material';
-import { axiosClient } from '../../../api/axiosClient';
-import { useAuth, isAdmin, isCustomer, isCourier } from '../../authentication';
-import { AssignOrderToCourier } from '../../../shared/components';
-import { formatCurrency, formatPricePerUnit } from '../../../shared/utils';
+import { api } from 'api';
+import { useAuth, isAdmin, isCustomer, isCourier } from 'domain/authentication';
+import { AssignOrderToCourier } from 'shared/components';
+import { formatCurrency, formatPricePerUnit } from 'shared/utils';
+import { log } from 'shared/log';
+import { routes } from 'router';
 import { FeedbackForm } from './FeedbackForm';
 import { FeedbackDisplay } from './FeedbackDisplay';
 import { ordersApi } from '../api';
 import { 
-  OrderDetails, 
-  CreateFeedbackRequest, 
-  AddressInfo,
+  type OrderDetails, 
+  type CreateFeedbackRequest, 
+  type AddressInfo,
   getStatusColor,
   canAssignCourier as checkCanAssignCourier,
   canMarkAsDelivered as checkCanMarkAsDelivered,
@@ -81,7 +83,7 @@ export const OrderDetailsPage: React.FC = () => {
       }
 
       try {
-        const response = await axiosClient.get(`/api/orders/${orderId}`);
+        const response = await api.get(`/api/orders/${orderId}`);
         setOrder(response.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch order details');
@@ -99,10 +101,10 @@ export const OrderDetailsPage: React.FC = () => {
     if (orderId) {
       const fetchOrderDetails = async () => {
         try {
-          const response = await axiosClient.get(`/api/orders/${orderId}`);
+          const response = await api.get(`/api/orders/${orderId}`);
           setOrder(response.data);
         } catch (err) {
-
+          log.error('Failed to refresh order after assignment:', err);
         }
       };
       fetchOrderDetails();
@@ -153,9 +155,9 @@ export const OrderDetailsPage: React.FC = () => {
     setError(null);
 
     try {
-      await axiosClient.post(`/api/orders/${order.id}/delivered`);
+      await api.post(`/api/orders/${order.id}/delivered`);
       
-      const response = await axiosClient.get(`/api/orders/${order.id}`);
+      const response = await api.get(`/api/orders/${order.id}`);
       setOrder(response.data);
       
       setShowSuccessMessage(true);
@@ -176,7 +178,7 @@ export const OrderDetailsPage: React.FC = () => {
     try {
       await ordersApi.markAsCompleted(order.id);
       
-      const response = await axiosClient.get(`/api/orders/${order.id}`);
+      const response = await api.get(`/api/orders/${order.id}`);
       setOrder(response.data);
       
       setShowSuccessMessage(true);
@@ -194,7 +196,7 @@ export const OrderDetailsPage: React.FC = () => {
     await ordersApi.addFeedback(order.id, feedback);
     
     // Refresh order data to show the new feedback
-    const response = await axiosClient.get(`/api/orders/${order.id}`);
+    const response = await api.get(`/api/orders/${order.id}`);
     setOrder(response.data);
     
     setShowSuccessMessage(true);
@@ -218,7 +220,7 @@ export const OrderDetailsPage: React.FC = () => {
         <Button
           variant="outlined"
           startIcon={<ArrowBack />}
-          onClick={() => navigate('/orders')}
+          onClick={() => navigate(routes.ORDERS)}
         >
           Back to Orders
         </Button>
@@ -252,7 +254,7 @@ export const OrderDetailsPage: React.FC = () => {
         <Button
           variant="outlined"
           startIcon={<ArrowBack />}
-          onClick={() => navigate('/orders')}
+          onClick={() => navigate(routes.ORDERS)}
           sx={{ borderRadius: 2 }}
         >
           Back to Orders

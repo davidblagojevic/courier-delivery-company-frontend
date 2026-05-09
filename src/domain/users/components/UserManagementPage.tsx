@@ -50,57 +50,15 @@ import {
   Person,
   Add,
 } from '@mui/icons-material';
-import { useAuth } from '../../authentication';
-import { UserRole } from '../../authentication/types/userRoles';
-import { axiosClient } from '../../../api/axiosClient';
-
-interface AddressInfo {
-  id: string;
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  postCode: string;
-}
-
-interface User {
-  id: string;
-  userName: string;
-  email: string;
-  role: string;
-  contactPhone?: string;
-  lockoutEnd?: string;
-  emailConfirmed: boolean;
-  isActive: boolean;
-  workTitle?: string;
-  courierStatus?: string;
-  address?: AddressInfo;
-}
-
-interface PagedUsersResponse {
-  items: User[];
-  page: number;
-  pageSize: number;
-  totalCount: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
-
-interface UserFormData {
-  id?: string;
-  email?: string;
-  password?: string;
-  contactPhone?: string;
-  workTitle?: string;
-}
-
-interface CreateUserFormData {
-  email: string;
-  password: string;
-  contactPhone?: string;
-  workTitle?: string;
-  role: UserRole.ADMINISTRATOR | UserRole.COURIER;
-}
+import { useAuth } from 'domain/authentication';
+import { UserRole } from 'domain/authentication/types/userRoles';
+import { api } from 'api';
+import {
+  type User,
+  type PagedUsersResponse,
+  type UserFormData,
+  type CreateUserFormData,
+} from '../types';
 
 const getRoleIcon = (role: string) => {
   switch (role) {
@@ -170,7 +128,7 @@ export const UserManagementPage: React.FC = () => {
         ...(roleFilter && { role: roleFilter }),
       });
 
-      const response = await axiosClient.get(`/api/users?${params}`);
+      const response = await api.get(`/api/users?${params}`);
       setUsers(response.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load users');
@@ -220,7 +178,7 @@ export const UserManagementPage: React.FC = () => {
     setError(null);
 
     try {
-      await axiosClient.put(`/api/users/${selectedUser.id}`, {
+      await api.put(`/api/users/${selectedUser.id}`, {
         contactPhone: formData.contactPhone || null,
         workTitle: formData.workTitle || null,
       });
@@ -277,7 +235,7 @@ export const UserManagementPage: React.FC = () => {
             contactPhone: createFormData.contactPhone || ''
           };
 
-      await axiosClient.post(endpoint, payload);
+      await api.post(endpoint, payload);
 
       handleCloseCreateDialog();
       fetchUsers();

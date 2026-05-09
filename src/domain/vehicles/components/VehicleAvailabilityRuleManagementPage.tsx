@@ -34,24 +34,13 @@ import {
   Schedule,
   Speed,
 } from '@mui/icons-material';
-import { useAuth } from '../../authentication';
-import { axiosClient } from '../../../api/axiosClient';
-
-interface VehicleAvailabilityRule {
-  id: string;
-  name: string;
-  availableFrom: string;
-  availableTo: string;
-  maximumDistanceInKm: number;
-}
-
-interface VehicleAvailabilityRuleFormData {
-  id?: string;
-  name: string;
-  availableFrom: string;
-  availableTo: string;
-  maximumDistanceInKm: number;
-}
+import { useAuth } from 'domain/authentication';
+import { api, getErrorMessage } from 'api';
+import { log } from 'shared/log';
+import {
+  type VehicleAvailabilityRule,
+  type VehicleAvailabilityRuleFormData,
+} from '../types';
 
 const formatTime = (timeSpan: string) => {
   // Convert TimeSpan format (HH:mm:ss) to HH:mm for display
@@ -99,14 +88,14 @@ export const VehicleAvailabilityRuleManagementPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const response = await axiosClient.get('/api/vehicle-availability-rules', {
+      const response = await api.get('/api/vehicle-availability-rules', {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       setRules(response.data || []);
-    } catch (err: any) {
-      console.error('Error fetching vehicle availability rules:', err);
-      setError(err.response?.data?.message || 'Failed to fetch vehicle availability rules');
+    } catch (err: unknown) {
+      log.error('Error fetching vehicle availability rules:', err);
+      setError(getErrorMessage(err, 'Failed to fetch vehicle availability rules'));
     } finally {
       setLoading(false);
     }
@@ -145,8 +134,11 @@ export const VehicleAvailabilityRuleManagementPage: React.FC = () => {
     setSuccess(null);
   };
 
-  const handleInputChange = (field: keyof VehicleAvailabilityRuleFormData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = <K extends keyof VehicleAvailabilityRuleFormData>(
+    field: K,
+    value: VehicleAvailabilityRuleFormData[K]
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -166,7 +158,7 @@ export const VehicleAvailabilityRuleManagementPage: React.FC = () => {
 
       if (editingRule) {
         // Update existing rule
-        await axiosClient.put(
+        await api.put(
           `/api/vehicle-availability-rules/${editingRule.id}`,
           submitData,
           {
@@ -176,7 +168,7 @@ export const VehicleAvailabilityRuleManagementPage: React.FC = () => {
         setSuccess('Vehicle availability rule updated successfully');
       } else {
         // Create new rule
-        await axiosClient.post('/api/vehicle-availability-rules', submitData, {
+        await api.post('/api/vehicle-availability-rules', submitData, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSuccess('Vehicle availability rule created successfully');
@@ -184,9 +176,9 @@ export const VehicleAvailabilityRuleManagementPage: React.FC = () => {
 
       handleCloseDialog();
       fetchRules();
-    } catch (err: any) {
-      console.error('Error saving vehicle availability rule:', err);
-      setError(err.response?.data?.message || 'Failed to save vehicle availability rule');
+    } catch (err: unknown) {
+      log.error('Error saving vehicle availability rule:', err);
+      setError(getErrorMessage(err, 'Failed to save vehicle availability rule'));
     } finally {
       setSubmitting(false);
     }

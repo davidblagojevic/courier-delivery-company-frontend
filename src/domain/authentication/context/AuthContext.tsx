@@ -1,35 +1,8 @@
-import React, { createContext, useContext, useReducer, useEffect, useCallback, ReactNode } from 'react';
-import { axiosClient } from '../../../api/axiosClient';
-
-export interface UserInfo {
-  id: string;
-  email: string;
-  roles: string[];
-}
-
-export interface TokenData {
-  accessToken: string;
-  refreshToken: string;
-  expiresAt: number; // Unix timestamp
-}
-
-export interface AuthState {
-  isAuthenticated: boolean;
-  token: string | null;
-  refreshToken: string | null;
-  tokenExpiresAt: number | null;
-  userInfo: UserInfo | null;
-  isLoading: boolean;
-  isRefreshing: boolean;
-  error: string | null;
-}
-
-export interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  refreshAccessToken: () => Promise<string | null>;
-  clearError: () => void;
-}
+import React, { createContext, useContext, useReducer, useEffect, useCallback, type ReactNode } from 'react';
+import { api, unauthorizedApi } from 'api';
+import { log } from 'shared/log';
+import type { AuthContextType, AuthState, TokenData, UserInfo } from '../types';
+import { TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from '../storage';
 
 type AuthAction =
   | { type: 'LOGIN_START' }
@@ -147,8 +120,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const restoreSession = () => {
       try {
-        const savedTokenData = localStorage.getItem('tokenData');
-        const savedUserInfo = localStorage.getItem('userInfo');
+        const savedTokenData = localStorage.getItem(TOKEN_STORAGE_KEY);
+        const savedUserInfo = localStorage.getItem(USER_STORAGE_KEY);
         
         if (savedTokenData && savedUserInfo) {
           const tokenData: TokenData = JSON.parse(savedTokenData);
@@ -166,7 +139,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         }
       } catch (error) {
-        console.error('Failed to restore session:', error);
+        log.error('Failed to restore session:', error);
         clearStoredAuth();
       }
     };
@@ -200,13 +173,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [state.userInfo]);
 
   const clearStoredAuth = () => {
-    localStorage.removeItem('tokenData');
-    localStorage.removeItem('userInfo');
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    localStorage.removeItem(USER_STORAGE_KEY);
   };
 
   const storeTokenData = (tokenData: TokenData, userInfo: UserInfo) => {
-    localStorage.setItem('tokenData', JSON.stringify(tokenData));
-    localStorage.setItem('userInfo', JSON.stringify(userInfo));
+    localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(tokenData));
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userInfo));
   };
 
   const parseTokenExpiry = (token: string): number => {
@@ -227,12 +200,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: 'REFRESH_START' });
 
     try {
-      const response = await axiosClient.post('/identity/refresh', {
+      const response = await unauthorizedApi.post('/identity/refresh', {
         refreshToken: state.refreshToken
       });
 
       const data = response.data;
-      
+
       const tokenData: TokenData = {
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
@@ -251,7 +224,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       return tokenData.accessToken;
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      log.error('Token refresh failed:', error);
       dispatch({ type: 'REFRESH_FAILURE' });
       clearStoredAuth();
       return null;
@@ -296,7 +269,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const refreshTokenSilently = async (refreshToken: string) => {
     try {
-      const response = await axiosClient.post('/identity/refresh', {
+      const response = await unauthorizedApi.post('/identity/refresh', {
         refreshToken
       });
 
@@ -307,14 +280,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         expiresAt: parseTokenExpiry(data.accessToken),
       };
 
-      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      const userInfo = JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || '{}');
       dispatch({
         type: 'RESTORE_SESSION',
         payload: { tokenData, userInfo }
       });
       storeTokenData(tokenData, userInfo);
     } catch (error) {
-      console.error('Silent token refresh failed:', error);
+      log.error('Silent token refresh failed:', error);
       clearStoredAuth();
     }
   };
@@ -324,7 +297,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     try {
       // Login request using Axios
-      const loginResponse = await axiosClient.post('/identity/login', {
+      const loginResponse = await unauthorizedApi.post('/identity/login', {
         email,
         password
       });
@@ -339,14 +312,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       };
 
       // Store token data first so axios interceptor can find it
-      localStorage.setItem('tokenData', JSON.stringify(tokenData));
+      localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(tokenData));
 
       // Get user info using Axios (token will be added by interceptor)
-      const userResponse = await axiosClient.get('/api/identity/me');
+      const userResponse = await api.get('/api/identity/me');
       const userInfo = userResponse.data;
 
       // Persist user info to localStorage
-      localStorage.setItem('userInfo', JSON.stringify(userInfo));
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userInfo));
 
       dispatch({
         type: 'LOGIN_SUCCESS',

@@ -28,10 +28,10 @@ import {
   AccountCircle,
   LocalShipping,
 } from '@mui/icons-material';
-import { useAuth } from '../../authentication';
-import { UserRole } from '../../authentication/types/userRoles';
-import { ECourierStatus, courierStatusLabels, getCourierStatusColor, courierStatusToBackendValue, courierStatusFromBackendValue } from '../../authentication/types/courierStatus';
-import { axiosClient } from '../../../api/axiosClient';
+import { useAuth } from 'domain/authentication';
+import { UserRole } from 'domain/authentication/types/userRoles';
+import { ECourierStatus, courierStatusLabels, getCourierStatusColor, courierStatusToBackendValue, courierStatusFromBackendValue } from 'domain/authentication/types/courierStatus';
+import { api } from 'api';
 
 interface ProfileData {
   id: string;
@@ -70,18 +70,14 @@ export const SettingsPage: React.FC = () => {
       setError(null);
 
       try {
-        const response = await axiosClient.get('/api/identity/me');
+        const response = await api.get('/api/identity/me');
         const profileData = response.data;
-        console.log('Profile data from /api/identity/me:', profileData);
-        
-        // Map the LoggedInUserResponse to our ProfileData interface
-        // Convert backend integer courier status to frontend enum value
+
+        // Map backend integer courier status to frontend enum value
         const backendCourierStatus = profileData.courierStatus;
-        const frontendCourierStatus = backendCourierStatus !== null && backendCourierStatus !== undefined 
+        const frontendCourierStatus = backendCourierStatus !== null && backendCourierStatus !== undefined
           ? courierStatusFromBackendValue[backendCourierStatus as keyof typeof courierStatusFromBackendValue] || ECourierStatus.OFFLINE
           : ECourierStatus.OFFLINE;
-
-        console.log('Backend courier status:', backendCourierStatus, '-> Frontend:', frontendCourierStatus);
 
         const mappedProfile: ProfileData = {
           id: profileData.id,
@@ -120,7 +116,7 @@ export const SettingsPage: React.FC = () => {
 
     try {
       // Handle user profile updates (phone, work title) using the new endpoint
-      await axiosClient.put('/api/identity/me', {
+      await api.put('/api/identity/me', {
         contactPhone: profile.role !== UserRole.ADMINISTRATOR ? formData.contactPhone || null : null,
         workTitle: profile.role === UserRole.ADMINISTRATOR ? formData.workTitle || null : null
       });
@@ -129,8 +125,7 @@ export const SettingsPage: React.FC = () => {
       if (profile.role === UserRole.COURIER) {
         // Convert the enum value to backend integer value
         const statusValue = courierStatusToBackendValue[formData.courierStatus];
-        console.log('Sending courier status:', formData.courierStatus, '-> integer:', statusValue);
-        await axiosClient.put('/api/couriers/status', {
+        await api.put('/api/couriers/status', {
           status: statusValue
         });
       }

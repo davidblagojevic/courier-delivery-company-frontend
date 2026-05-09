@@ -29,38 +29,11 @@ import {
   Collapse,
 } from '@mui/material';
 import { Search, Refresh, FilterList, ExpandMore, ExpandLess } from '@mui/icons-material';
-import { useAuth, isAdmin, isCourier, isCustomer } from '../../authentication';
-import { axiosClient } from '../../../api/axiosClient';
+import { useAuth, isAdmin, isCourier, isCustomer } from 'domain/authentication';
+import { api } from 'api';
+import { routes } from 'router';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getStatusColor } from '../types';
-
-interface Order {
-  id: string;
-  customerId: string;
-  courierId?: string;
-  orderStatus: string;
-  totalPrice: number;
-  vehicleId: string;
-  orderDate: string;
-  estimatedDeliveryDate: string;
-  actualDeliveryDate?: string;
-  description?: string;
-}
-
-interface PagedOrdersResponse {
-  items: Order[];
-  page: number;
-  pageSize: number;
-  totalCount: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-  links: Array<{
-    href: string;
-    rel: string;
-    type: string;
-  }>;
-}
+import { getStatusColor, type PagedOrdersResponse } from '../types';
 
 
 export const OrdersPage: React.FC = () => {
@@ -79,20 +52,9 @@ export const OrdersPage: React.FC = () => {
   const [pageSize, setPageSize] = useState(10);
   const [filtersExpanded, setFiltersExpanded] = useState(!isMobile);
 
-  // Early return if no auth data
-  if (!token || !userInfo) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  const userIsAdmin = isAdmin(userInfo.roles);
-  const userIsCourier = isCourier(userInfo.roles);
-  const userIsCustomer = isCustomer(userInfo.roles);
-
   const fetchOrders = useCallback(async () => {
+    if (!token || !userInfo) return;
+
     setLoading(true);
     setError(null);
 
@@ -105,18 +67,31 @@ export const OrdersPage: React.FC = () => {
         ...(searchTerm && { searchTerm }),
       });
 
-      const response = await axiosClient.get(`/api/orders?${params}`);
+      const response = await api.get(`/api/orders?${params}`);
       setOrders(response.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, sortColumn, sortOrder, searchTerm]);
+  }, [token, userInfo, page, pageSize, sortColumn, sortOrder, searchTerm]);
 
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
+
+  // Render guard for missing auth — hooks must run before any early return.
+  if (!token || !userInfo) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  const userIsAdmin = isAdmin(userInfo.roles);
+  const userIsCourier = isCourier(userInfo.roles);
+  const userIsCustomer = isCustomer(userInfo.roles);
 
   const handleSearch = () => {
     setPage(1);
@@ -325,7 +300,7 @@ export const OrdersPage: React.FC = () => {
                                 textDecoration: 'underline'
                               }
                             }}
-                            onClick={() => navigate(`/orders/${order.id}`)}
+                            onClick={() => navigate(routes.orderDetails(order.id))}
                           >
                             {order.id}
                           </Typography>

@@ -13,8 +13,9 @@ import {
 } from '@mui/material';
 import { PersonAddOutlined, ArrowBack } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { AddressAutocomplete } from '../../../shared/components/AddressAutocomplete';
-import { axiosClient } from '../../../api/axiosClient';
+import { AddressAutocomplete } from 'shared/components/AddressAutocomplete';
+import { unauthorizedApi, getErrorMessage } from 'api';
+import { routes } from 'router';
 
 interface RegisterData {
   email: string;
@@ -141,18 +142,17 @@ export const RegisterPage: React.FC = () => {
         contactPhone: formData.contactPhone || null,
       };
 
-      await axiosClient.post('/api/identity/register/customer', requestData);
+      await unauthorizedApi.post('/api/identity/register/customer', requestData);
       
       setSuccess(true);
       
       // Redirect to login page after 3 seconds
       setTimeout(() => {
-        navigate('/login');
+        navigate(routes.LOGIN);
       }, 3000);
 
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || err.message || 'Registration failed. Please try again.';
-      setError(errorMessage);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Registration failed. Please try again.'));
     } finally {
       setIsLoading(false);
     }
@@ -182,7 +182,7 @@ export const RegisterPage: React.FC = () => {
               </Typography>
               <Button
                 variant="outlined"
-                onClick={() => navigate('/login')}
+                onClick={() => navigate(routes.LOGIN)}
                 sx={{ mt: 2 }}
               >
                 Go to Login Now
@@ -208,7 +208,7 @@ export const RegisterPage: React.FC = () => {
             <Box display="flex" alignItems="center" mb={3}>
               <Button
                 startIcon={<ArrowBack />}
-                onClick={() => navigate('/login')}
+                onClick={() => navigate(routes.LOGIN)}
                 variant="text"
                 sx={{ mr: 2 }}
               >
@@ -313,7 +313,7 @@ export const RegisterPage: React.FC = () => {
                   <Link
                     component="button"
                     type="button"
-                    onClick={() => navigate('/login')}
+                    onClick={() => navigate(routes.LOGIN)}
                     sx={{ cursor: 'pointer' }}
                   >
                     Sign in here

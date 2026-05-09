@@ -1,6 +1,6 @@
-import { AdminDashboard } from './adminDashboard';
-import { CustomerDashboard } from './customerDashboard';
-import { CourierDashboard } from './courierDashboard';
+import { type AdminDashboard } from './adminDashboard';
+import { type CustomerDashboard } from './customerDashboard';
+import { type CourierDashboard } from './courierDashboard';
 
 export interface DashboardResponse {
   role: string;

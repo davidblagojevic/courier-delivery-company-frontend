@@ -14,7 +14,7 @@ import {
   Divider,
 } from '@mui/material';
 import { Star, StarBorder, Feedback as FeedbackIcon } from '@mui/icons-material';
-import { CreateFeedbackRequest } from '../types';
+import { type CreateFeedbackRequest } from '../types';
 
 interface FeedbackFormProps {
   orderId: string;

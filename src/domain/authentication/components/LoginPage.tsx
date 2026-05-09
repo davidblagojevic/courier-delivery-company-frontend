@@ -14,6 +14,7 @@ import {
 import { LoginOutlined } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { routes } from 'router';
 
 interface LoginCredentials {
   email: string;
@@ -124,7 +125,7 @@ export const LoginPage: React.FC = () => {
                   <Link
                     component="button"
                     type="button"
-                    onClick={() => navigate('/forgot-password')}
+                    onClick={() => navigate(routes.FORGOT_PASSWORD)}
                     sx={{ cursor: 'pointer', textDecoration: 'none' }}
                     disabled={isLoading}
                   >
@@ -133,11 +134,11 @@ export const LoginPage: React.FC = () => {
                 </Typography>
                 
                 <Typography variant="body2" color="text.secondary">
-                  Don't have an account?{' '}
+                  Don&apos;t have an account?{' '}
                   <Link
                     component="button"
                     type="button"
-                    onClick={() => navigate('/register')}
+                    onClick={() => navigate(routes.REGISTER)}
                     sx={{ cursor: 'pointer' }}
                     disabled={isLoading}
                   >

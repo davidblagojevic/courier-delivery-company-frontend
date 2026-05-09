@@ -1,4 +1,4 @@
-import { OrderCountsByStatus } from './orderCountsByStatus';
+import { type OrderCountsByStatus } from './orderCountsByStatus';
 
 export interface CustomerDashboard {
   orderCounts: OrderCountsByStatus;

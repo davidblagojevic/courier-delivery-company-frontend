@@ -5,25 +5,16 @@ import React, {
   useEffect,
   useCallback,
   useRef,
-  ReactNode,
+  type ReactNode,
 } from 'react';
-import { SignalRService, NotificationData } from '../services/signalRService';
-import { NotificationsApi, Notification, NotificationsResponse } from '../services/notificationsApi';
+import { SignalRService, type NotificationData } from '../services/signalRService';
+import { NotificationsApi, type Notification, type NotificationsResponse } from '../services/notificationsApi';
 import { NotificationFilter } from '../types/NotificationFilter';
-import { useAuth } from '../../authentication/context/AuthContext';
+import { type NotificationsState, type NotificationsContextType } from '../types';
+import { useAuth } from 'domain/authentication';
+import { log } from 'shared/log';
 
 // --- STATE AND REDUCER ---
-
-interface NotificationsState {
-  notifications: Notification[];
-  unreadCount: number;
-  totalCount: number;
-  hasMore: boolean;
-  isLoading: boolean;
-  isLoadingMore: boolean;
-  isConnected: boolean;
-  error: string | null;
-}
 
 const initialState: NotificationsState = {
   notifications: [],
@@ -115,14 +106,6 @@ const notificationsReducer = (
 
 // --- CONTEXT AND PROVIDER ---
 
-interface NotificationsContextType extends NotificationsState {
-  markAsRead: (notificationId: string) => Promise<void>;
-  markAllAsRead: () => Promise<void>;
-  refreshNotifications: (filter?: NotificationFilter) => Promise<void>;
-  loadMoreNotifications: (filter?: NotificationFilter) => Promise<void>;
-  clearError: () => void;
-}
-
 const NotificationsContext = createContext<NotificationsContextType | null>(null);
 
 export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
@@ -173,7 +156,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
         service.onNotificationReceived(handleSignalRNotification);
       })
       .catch((error) => {
-        console.error('SignalR connection failed:', error);
+        log.error('SignalR connection failed:', error);
         dispatch({
           type: 'SET_ERROR',
           payload: 'Failed to connect to notification service.',
@@ -197,7 +180,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
         const response = await NotificationsApi.getNotifications(NotificationFilter.All, 0, 10);
         dispatch({ type: 'SET_NOTIFICATIONS', payload: response });
       } catch (error) {
-        console.error('Failed to fetch notifications:', error);
+        log.error('Failed to fetch notifications:', error);
         dispatch({ type: 'SET_ERROR', payload: 'Failed to load notifications.' });
       }
     };
@@ -213,7 +196,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
       dispatch({ type: 'MARK_AS_READ', payload: notificationId });
       await NotificationsApi.markAsRead(notificationId);
     } catch (error) {
-      console.error('Failed to mark notification as read:', error);
+      log.error('Failed to mark notification as read:', error);
       // NOTE: Here you could add logic to revert the optimistic update on failure
       dispatch({
         type: 'SET_ERROR',
@@ -239,7 +222,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
         unreadIds.map((id) => NotificationsApi.markAsRead(id)),
       );
     } catch (error) {
-      console.error('Failed to mark all notifications as read:', error);
+      log.error('Failed to mark all notifications as read:', error);
       dispatch({
         type: 'SET_ERROR',
         payload: 'Failed to update notifications.',
@@ -255,7 +238,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
       const response = await NotificationsApi.getNotifications(filter, 0, 10);
       dispatch({ type: 'SET_NOTIFICATIONS', payload: response });
     } catch (error) {
-      console.error('Failed to refresh notifications:', error);
+      log.error('Failed to refresh notifications:', error);
       dispatch({ type: 'SET_ERROR', payload: 'Failed to refresh notifications.' });
     }
   }, [isAuthenticated]);
@@ -268,7 +251,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
       const response = await NotificationsApi.getNotifications(filter, state.notifications.length, 10);
       dispatch({ type: 'LOAD_MORE_NOTIFICATIONS', payload: response });
     } catch (error) {
-      console.error('Failed to load more notifications:', error);
+      log.error('Failed to load more notifications:', error);
       dispatch({ type: 'SET_ERROR', payload: 'Failed to load more notifications.' });
     }
   }, [isAuthenticated, state.isLoadingMore, state.hasMore, state.notifications.length]);

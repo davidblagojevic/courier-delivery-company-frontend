@@ -19,9 +19,10 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../context/NotificationsContext';
-import { Notification as NotificationItem } from '../services/notificationsApi';
+import { type Notification as NotificationItem } from '../services/notificationsApi';
 import { NotificationFilter } from '../types/NotificationFilter';
 import { formatDistanceToNow } from 'date-fns';
+import { routes } from 'router';
 
 export const NotificationBadge: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -61,7 +62,7 @@ export const NotificationBadge: React.FC = () => {
 
   const handleViewAllNotifications = () => {
     handleClose();
-    navigate('/notifications');
+    navigate(routes.NOTIFICATIONS);
   };
 
   const handleLoadMore = async () => {

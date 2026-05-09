@@ -9,13 +9,13 @@ import {
   Alert,
   CircularProgress,
   Container,
-  Link,
   IconButton,
   InputAdornment,
 } from '@mui/material';
 import { LockReset, ArrowBack, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { apiClient } from '../../../api/apiClient';
+import { unauthorizedApi, getErrorMessage } from 'api';
+import { routes } from 'router';
 
 interface ResetPasswordFormData {
   newPassword: string;
@@ -98,20 +98,15 @@ export const ResetPasswordPage: React.FC = () => {
     setError(null);
 
     try {
-      const response = await apiClient.post('/api/auth/reset-password', {
-        email: email,
-        token: token,
+      await unauthorizedApi.post('/api/auth/reset-password', {
+        email,
+        token,
         newPassword: formData.newPassword,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to reset password');
-      }
-
       setIsSuccess(true);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred. Please try again.');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'An error occurred. Please try again.'));
     } finally {
       setIsLoading(false);
     }
@@ -146,7 +141,7 @@ export const ResetPasswordPage: React.FC = () => {
               <Button
                 variant="contained"
                 fullWidth
-                onClick={() => navigate('/login')}
+                onClick={() => navigate(routes.LOGIN)}
                 size="large"
               >
                 Continue to Login
@@ -195,7 +190,6 @@ export const ResetPasswordPage: React.FC = () => {
                 margin="normal"
                 required
                 disabled={isLoading}
-                autoFocus
                 helperText="Must be at least 8 characters with uppercase, lowercase, and number"
                 InputProps={{
                   endAdornment: (
@@ -252,18 +246,16 @@ export const ResetPasswordPage: React.FC = () => {
               </Button>
 
               <Box textAlign="center" mt={2}>
-                <Typography variant="body2" color="text.secondary">
-                  <Link
-                    component="button"
-                    type="button"
-                    onClick={() => navigate('/login')}
-                    sx={{ cursor: 'pointer' }}
-                    disabled={isLoading}
-                    startIcon={<ArrowBack />}
-                  >
-                    Back to Login
-                  </Link>
-                </Typography>
+                <Button
+                  variant="text"
+                  size="small"
+                  type="button"
+                  onClick={() => navigate(routes.LOGIN)}
+                  disabled={isLoading}
+                  startIcon={<ArrowBack />}
+                >
+                  Back to Login
+                </Button>
               </Box>
             </Box>
           </CardContent>

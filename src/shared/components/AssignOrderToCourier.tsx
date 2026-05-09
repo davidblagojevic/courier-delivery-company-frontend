@@ -22,7 +22,7 @@ import {
   Close,
   ExpandMore,
 } from '@mui/icons-material';
-import { axiosClient } from '../../api/axiosClient';
+import { api } from 'api';
 
 interface AvailableCourier {
   id: string;
@@ -66,7 +66,7 @@ export const AssignOrderToCourier: React.FC<AssignOrderToCourierProps> = ({
     setError(null);
 
     try {
-      const response = await axiosClient.get(`/api/couriers/available`, {
+      const response = await api.get(`/api/couriers/available`, {
         params: { page: pageNum, pageSize: 10 }
       });
       
@@ -106,7 +106,7 @@ export const AssignOrderToCourier: React.FC<AssignOrderToCourierProps> = ({
     setError(null);
 
     try {
-      await axiosClient.post(`/api/orders/${orderId}/assign?courierId=${selectedCourierId}`);
+      await api.post(`/api/orders/${orderId}/assign?courierId=${selectedCourierId}`);
       
       onAssignmentComplete();
     } catch (err) {

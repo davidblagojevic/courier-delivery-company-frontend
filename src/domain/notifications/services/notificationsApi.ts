@@ -1,4 +1,4 @@
-import { axiosClient } from '../../../api/axiosClient';
+import { api } from 'api';
 import { NotificationFilter } from '../types/NotificationFilter';
 
 export interface Notification {
@@ -25,13 +25,13 @@ export class NotificationsApi {
     skip: number = 0, 
     take: number = 10
   ): Promise<NotificationsResponse> {
-    const response = await axiosClient.get(
+    const response = await api.get(
       `${this.BASE_URL}?filter=${filter}&skip=${skip}&take=${take}`
     );
     return response.data;
   }
 
   static async markAsRead(notificationId: string): Promise<void> {
-    await axiosClient.post(`${this.BASE_URL}/${notificationId}/mark-read`);
+    await api.post(`${this.BASE_URL}/${notificationId}/mark-read`);
   }
 }

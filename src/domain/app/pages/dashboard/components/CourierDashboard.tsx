@@ -10,8 +10,8 @@ import {
   CheckCircle,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { CourierDashboard as CourierDashboardType } from '../types';
-import { ECourierStatus } from '../../../../authentication/types/courierStatus';
+import { type CourierDashboard as CourierDashboardType } from '../types';
+import { ECourierStatus } from 'domain/authentication/types/courierStatus';
 import { StatCard } from './StatCard';
 
 interface CourierDashboardProps {

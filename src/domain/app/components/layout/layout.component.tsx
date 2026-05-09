@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { type ReactNode } from 'react';
 import { Box, useTheme, useMediaQuery } from '@mui/material';
 import { Header } from './header/header';
 

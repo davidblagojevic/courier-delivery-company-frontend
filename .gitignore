@@ -5,6 +5,12 @@
 /build
 /dist
 
+# build / tooling caches
+*.tsbuildinfo
+.eslintcache
+.vite/
+*.local
+
 # misc
 .DS_Store
 *.log
@@ -18,14 +24,19 @@ pnpm-debug.log*
 .env.local
 .env.*.local
 
-# editor directories and files
+# editor / AI assistant
 .vscode/
 .idea/
+.claude/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# Optional: test coverage output
+# test coverage output
 /coverage
+
+# local planning docs
+IMPROVEMENT_PLAN.md
+REFACTOR_PLAN.md

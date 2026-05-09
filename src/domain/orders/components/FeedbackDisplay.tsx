@@ -15,7 +15,7 @@ import {
   Star,
   Schedule,
 } from '@mui/icons-material';
-import { FeedbackInfo } from '../types';
+import { type FeedbackInfo } from '../types';
 
 interface FeedbackDisplayProps {
   feedback: FeedbackInfo;

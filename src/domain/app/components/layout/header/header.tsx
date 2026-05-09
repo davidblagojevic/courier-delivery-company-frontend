@@ -31,8 +31,9 @@ import {
   People,
   Schedule,
 } from '@mui/icons-material';
-import { useAuth, isCustomer, isAdmin } from '../../../../authentication';
-import { NotificationBadge } from '../../../../notifications/components/NotificationBadge';
+import { useAuth, isCustomer, isAdmin } from 'domain/authentication';
+import { NotificationBadge } from 'domain/notifications/components/NotificationBadge';
+import { routes } from 'router';
 
 export const Header: React.FC = () => {
   const { userInfo, logout } = useAuth();
@@ -74,16 +75,16 @@ export const Header: React.FC = () => {
   const userIsAdmin = isAdmin(userInfo?.roles);
 
   const menuItems = [
-    { label: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
-    { label: 'Orders', icon: <LocalShipping />, path: '/orders' },
-    { label: 'Notifications', icon: <Notifications />, path: '/notifications' },
-    { label: 'Settings', icon: <Settings />, path: '/settings' },
+    { label: 'Dashboard', icon: <Dashboard />, path: routes.DASHBOARD },
+    { label: 'Orders', icon: <LocalShipping />, path: routes.ORDERS },
+    { label: 'Notifications', icon: <Notifications />, path: routes.NOTIFICATIONS },
+    { label: 'Settings', icon: <Settings />, path: routes.SETTINGS },
   ];
 
   const adminMenuItems = [
-    { label: 'Vehicles', icon: <DirectionsCar />, path: '/admin/vehicles' },
-    { label: 'Users', icon: <People />, path: '/admin/users' },
-    { label: 'Availability Rules', icon: <Schedule />, path: '/admin/vehicle-availability-rules' },
+    { label: 'Vehicles', icon: <DirectionsCar />, path: routes.ADMIN_VEHICLES },
+    { label: 'Users', icon: <People />, path: routes.ADMIN_USERS },
+    { label: 'Availability Rules', icon: <Schedule />, path: routes.ADMIN_VEHICLE_AVAILABILITY_RULES },
   ];
 
   return (
@@ -146,7 +147,7 @@ export const Header: React.FC = () => {
                   color="inherit"
                   variant="outlined"
                   startIcon={<Add />}
-                  onClick={() => navigate('/orders/create')}
+                  onClick={() => navigate(routes.ORDERS_CREATE)}
                   sx={{ 
                     textTransform: 'none',
                     borderColor: 'rgba(255, 255, 255, 0.5)',
@@ -270,12 +271,12 @@ export const Header: React.FC = () => {
             {/* Create Order for customers */}
             {userIsCustomer && (
               <ListItem
-                onClick={() => handleNavigate('/orders/create')}
+                onClick={() => handleNavigate(routes.ORDERS_CREATE)}
                 sx={{
                   cursor: 'pointer',
                   borderRadius: 1,
                   mb: 1,
-                  backgroundColor: location.pathname === '/orders/create' ? 'action.selected' : 'transparent',
+                  backgroundColor: location.pathname === routes.ORDERS_CREATE ? 'action.selected' : 'transparent',
                   '&:hover': {
                     backgroundColor: 'action.hover',
                   },

@@ -42,50 +42,15 @@ import {
   Schedule,
   Speed,
 } from '@mui/icons-material';
-import { useAuth } from '../../authentication';
-import { axiosClient } from '../../../api/axiosClient';
-
-interface VehicleAvailabilityRule {
-  id: string;
-  name: string;
-  availableFrom: string;
-  availableTo: string;
-  maximumDistanceInKm: number;
-}
-
-interface Vehicle {
-  id: string;
-  name: string;
-  maxWeight: number;
-  isZeroEmission: boolean;
-  vehicleImage?: string;
-  pricePerKilometer: number;
-  vehicleAvailabilityRule: VehicleAvailabilityRule;
-  createdBy: string;
-  createdDate: string;
-  updatedBy?: string;
-  updatedDate?: string;
-}
-
-interface PagedVehiclesResponse {
-  items: Vehicle[];
-  page: number;
-  pageSize: number;
-  totalCount: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
-
-interface VehicleFormData {
-  id?: string;
-  name: string;
-  maxWeight: number;
-  isZeroEmission: boolean;
-  pricePerKilometer: number;
-  vehicleAvailabilityRuleId: string;
-  vehicleImage?: string;
-}
+import { useAuth } from 'domain/authentication';
+import { api } from 'api';
+import { log } from 'shared/log';
+import {
+  type Vehicle,
+  type VehicleAvailabilityRule,
+  type PagedVehiclesResponse,
+  type VehicleFormData,
+} from '../types';
 
 const formatTime = (timeString: string) => {
   const [hours, minutes] = timeString.split(':');
@@ -129,7 +94,7 @@ export const VehicleManagementPage: React.FC = () => {
         ...(searchTerm && { searchTerm }),
       });
 
-      const response = await axiosClient.get(`/api/vehicles?${params}`);
+      const response = await api.get(`/api/vehicles?${params}`);
       setVehicles(response.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load vehicles');
@@ -140,10 +105,10 @@ export const VehicleManagementPage: React.FC = () => {
 
   const fetchAvailabilityRules = useCallback(async () => {
     try {
-      const response = await axiosClient.get('/api/vehicles/availability-rules');
+      const response = await api.get('/api/vehicles/availability-rules');
       setAvailabilityRules(response.data);
     } catch (err) {
-      console.error('Failed to load availability rules:', err);
+      log.error('Failed to load availability rules:', err);
     }
   }, []);
 
@@ -219,7 +184,7 @@ export const VehicleManagementPage: React.FC = () => {
 
     try {
       if (dialogMode === 'create') {
-        await axiosClient.post('/api/vehicles', {
+        await api.post('/api/vehicles', {
           name: formData.name,
           maxWeight: formData.maxWeight,
           isZeroEmission: formData.isZeroEmission,
@@ -228,7 +193,7 @@ export const VehicleManagementPage: React.FC = () => {
           vehicleImage: formData.vehicleImage || null,
         });
       } else {
-        await axiosClient.put(`/api/vehicles/${formData.id}`, {
+        await api.put(`/api/vehicles/${formData.id}`, {
           name: formData.name,
           maxWeight: formData.maxWeight,
           isZeroEmission: formData.isZeroEmission,

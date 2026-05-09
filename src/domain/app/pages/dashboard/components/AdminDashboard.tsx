@@ -7,7 +7,8 @@ import {
   DirectionsCar,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { AdminDashboard as AdminDashboardType } from '../types';
+import { routes } from 'router';
+import { type AdminDashboard as AdminDashboardType } from '../types';
 import { StatCard } from './StatCard';
 
 interface AdminDashboardProps {
@@ -25,14 +26,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ data }) => {
           title="Total Orders"
           value={data.orderCounts.total}
           icon={<ShoppingCart fontSize="inherit" />}
-          onClick={() => navigate('/orders')}
+          onClick={() => navigate(routes.ORDERS)}
         />
         <StatCard
           title="Total Users"
           value={data.userCounts.total}
           icon={<People fontSize="inherit" />}
           subtitle={`${data.userCounts.customers} customers, ${data.userCounts.couriers} couriers, ${data.userCounts.admins} admins`}
-          onClick={() => navigate('/admin/users')}
+          onClick={() => navigate(routes.ADMIN_USERS)}
         />
         <StatCard
           title="Available Couriers"
@@ -40,14 +41,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ data }) => {
           icon={<LocalShipping fontSize="inherit" />}
           color="success.main"
           subtitle={`${data.courierAvailability.unavailable} unavailable, ${data.courierAvailability.offline} offline`}
-          onClick={() => navigate('/admin/users?role=Courier')}
+          onClick={() => navigate(`${routes.ADMIN_USERS}?role=Courier`)}
         />
         <StatCard
           title="Vehicles"
           value={data.vehicleSummary.total}
           icon={<DirectionsCar fontSize="inherit" />}
           subtitle={`${data.vehicleSummary.zeroEmissionCount} zero-emission`}
-          onClick={() => navigate('/admin/vehicles')}
+          onClick={() => navigate(routes.ADMIN_VEHICLES)}
         />
       </Box>
 
@@ -58,25 +59,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ data }) => {
           title="Created"
           value={data.orderCounts.created}
           color="info.main"
-          onClick={() => navigate('/orders?search=Created')}
+          onClick={() => navigate(`${routes.ORDERS}?search=Created`)}
         />
         <StatCard
           title="Assigned"
           value={data.orderCounts.assignedToCourier}
           color="warning.main"
-          onClick={() => navigate('/orders?search=AssignedToCourier')}
+          onClick={() => navigate(`${routes.ORDERS}?search=AssignedToCourier`)}
         />
         <StatCard
           title="Delivered"
           value={data.orderCounts.delivered}
           color="success.main"
-          onClick={() => navigate('/orders?search=Delivered')}
+          onClick={() => navigate(`${routes.ORDERS}?search=Delivered`)}
         />
         <StatCard
           title="Completed"
           value={data.orderCounts.completed}
           color="success.dark"
-          onClick={() => navigate('/orders?search=Completed')}
+          onClick={() => navigate(`${routes.ORDERS}?search=Completed`)}
         />
       </Box>
     </Box>

@@ -1,7 +1,7 @@
-import { OrderCountsByStatus } from './orderCountsByStatus';
-import { UserCounts } from './userCounts';
-import { CourierAvailability } from './courierAvailability';
-import { VehicleSummary } from './vehicleSummary';
+import { type OrderCountsByStatus } from './orderCountsByStatus';
+import { type UserCounts } from './userCounts';
+import { type CourierAvailability } from './courierAvailability';
+import { type VehicleSummary } from './vehicleSummary';
 
 export interface AdminDashboard {
   orderCounts: OrderCountsByStatus;

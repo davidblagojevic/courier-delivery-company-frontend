@@ -10,7 +10,8 @@ import {
   Typography,
 } from '@mui/material';
 import { LocationOn } from '@mui/icons-material';
-import { axiosClient } from '../../api/axiosClient';
+import { api } from 'api';
+import { log } from 'shared/log';
 
 interface AddressOption {
   id: string;
@@ -66,7 +67,7 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     timeoutRef.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const response = await axiosClient.get('/api/addresses/search', {
+        const response = await api.get('/api/addresses/search', {
           params: {
             searchTerm: value,
             maxResults: 10,
@@ -75,7 +76,7 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
         setOptions(response.data);
         setOpen(true);
       } catch (error) {
-        console.error('Error fetching addresses:', error);
+        log.error('Error fetching addresses:', error);
         setOptions([]);
       } finally {
         setLoading(false);

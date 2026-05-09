@@ -1,14 +1,4 @@
-import { VehicleInfo } from './vehicle';
-import { AddressInfo } from './address';
-import { FeedbackInfo } from './feedback';
-
-export interface CourierInfo {
-  id: string;
-  email: string;
-  contactPhone?: string;
-}
-
-export interface OrderDetails {
+export interface Order {
   id: string;
   customerId: string;
   courierId?: string;
@@ -19,9 +9,4 @@ export interface OrderDetails {
   estimatedDeliveryDate: string;
   actualDeliveryDate?: string;
   description?: string;
-  vehicle: VehicleInfo;
-  collectionAddress: AddressInfo;
-  deliveryAddress: AddressInfo;
-  feedback?: FeedbackInfo;
-  courier?: CourierInfo;
 }

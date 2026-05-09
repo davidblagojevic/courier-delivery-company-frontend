@@ -13,7 +13,8 @@ import {
 } from '@mui/material';
 import { PasswordOutlined, ArrowBack } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { apiClient } from '../../../api/apiClient';
+import { unauthorizedApi, getErrorMessage } from 'api';
+import { routes } from 'router';
 
 interface ForgotPasswordFormData {
   email: string;
@@ -49,18 +50,13 @@ export const ForgotPasswordPage: React.FC = () => {
     setError(null);
 
     try {
-      const response = await apiClient.post('/api/auth/forgot-password', {
+      await unauthorizedApi.post('/api/auth/forgot-password', {
         email: formData.email,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to send password reset email');
-      }
-
       setIsSuccess(true);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred. Please try again.');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'An error occurred. Please try again.'));
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +80,7 @@ export const ForgotPasswordPage: React.FC = () => {
                   Check Your Email
                 </Typography>
                 <Typography variant="body1" color="text.secondary" align="center">
-                  If an account with that email exists, we've sent you a password reset link.
+                  If an account with that email exists, we&apos;ve sent you a password reset link.
                 </Typography>
               </Box>
 
@@ -104,7 +100,7 @@ export const ForgotPasswordPage: React.FC = () => {
                 <Button
                   variant="contained"
                   fullWidth
-                  onClick={() => navigate('/login')}
+                  onClick={() => navigate(routes.LOGIN)}
                   startIcon={<ArrowBack />}
                   disabled={isLoading}
                 >
@@ -135,7 +131,7 @@ export const ForgotPasswordPage: React.FC = () => {
                 Forgot Password
               </Typography>
               <Typography variant="body2" color="text.secondary" align="center">
-                Enter your email address and we'll send you a link to reset your password
+                Enter your email address and we&apos;ll send you a link to reset your password
               </Typography>
             </Box>
 
@@ -155,7 +151,6 @@ export const ForgotPasswordPage: React.FC = () => {
                 margin="normal"
                 required
                 disabled={isLoading}
-                autoFocus
                 helperText="Enter the email address associated with your account"
               />
               
@@ -180,7 +175,7 @@ export const ForgotPasswordPage: React.FC = () => {
                   <Link
                     component="button"
                     type="button"
-                    onClick={() => navigate('/login')}
+                    onClick={() => navigate(routes.LOGIN)}
                     sx={{ cursor: 'pointer' }}
                     disabled={isLoading}
                   >

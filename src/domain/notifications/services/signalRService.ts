@@ -1,4 +1,5 @@
 import * as signalR from '@microsoft/signalr';
+import { log } from 'shared/log';
 
 export interface NotificationData {
   id: string;
@@ -49,13 +50,13 @@ export class SignalRService {
 
     // Notify listeners when connection is lost
     this.connection.onreconnecting((error) => {
-      console.warn('SignalR: Connection lost, attempting to reconnect...', error);
+      log.warn('SignalR: Connection lost, attempting to reconnect...', error);
       this.onConnectionStateChanged?.(false);
     });
 
     // Notify listeners and rejoin group upon successful reconnection
     this.connection.onreconnected(async () => {
-      console.log('SignalR: Connection re-established.');
+      log.info('SignalR: Connection re-established.');
       this.onConnectionStateChanged?.(true);
       await this.joinUserGroup();
     });
@@ -63,9 +64,9 @@ export class SignalRService {
     // Notify listeners when the connection is closed for good
     this.connection.onclose((error) => {
       if (error) {
-        console.error('SignalR: Connection closed due to an error.', error);
+        log.error('SignalR: Connection closed due to an error.', error);
       } else {
-        console.log('SignalR: Connection closed normally.');
+        log.info('SignalR: Connection closed normally.');
       }
       this.onConnectionStateChanged?.(false);
     });
@@ -75,7 +76,7 @@ export class SignalRService {
       this.onConnectionStateChanged?.(true);
       await this.joinUserGroup();
     } catch (error) {
-      console.error('SignalR: Failed to start connection.', error);
+      log.error('SignalR: Failed to start connection.', error);
       // Clean up on failure
       this.connection = null;
       throw error;
@@ -88,7 +89,7 @@ export class SignalRService {
     try {
       await this.connection.stop();
     } catch (error) {
-      console.error('SignalR: Error stopping connection.', error);
+      log.error('SignalR: Error stopping connection.', error);
     } finally {
       this.connection = null;
     }
@@ -98,9 +99,9 @@ export class SignalRService {
     if (this.connection?.state !== signalR.HubConnectionState.Connected) return;
     try {
       await this.connection.invoke('JoinUserGroup');
-      console.log('SignalR: Joined user group.');
+      log.info('SignalR: Joined user group.');
     } catch (error) {
-      console.error('SignalR: Failed to join user group.', error);
+      log.error('SignalR: Failed to join user group.', error);
     }
   }
 

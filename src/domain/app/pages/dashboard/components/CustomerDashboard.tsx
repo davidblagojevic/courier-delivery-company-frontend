@@ -6,9 +6,10 @@ import {
   RateReview,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { CustomerDashboard as CustomerDashboardType } from '../types';
+import { routes } from 'router';
+import { type CustomerDashboard as CustomerDashboardType } from '../types';
 import { StatCard } from './StatCard';
-import { formatCurrency } from '../../../../../shared/utils/currency';
+import { formatCurrency } from 'shared/utils/currency';
 
 interface CustomerDashboardProps {
   data: CustomerDashboardType;
@@ -25,7 +26,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ data }) =>
           title="Total Orders"
           value={data.orderCounts.total}
           icon={<ShoppingCart fontSize="inherit" />}
-          onClick={() => navigate('/orders')}
+          onClick={() => navigate(routes.ORDERS)}
         />
         <StatCard
           title="Total Spent"
@@ -38,7 +39,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ data }) =>
           value={data.ordersAwaitingFeedback}
           icon={<RateReview fontSize="inherit" />}
           color={data.ordersAwaitingFeedback > 0 ? 'warning.main' : 'text.secondary'}
-          onClick={() => navigate('/orders?search=Completed')}
+          onClick={() => navigate(`${routes.ORDERS}?search=Completed`)}
         />
       </Box>
 
@@ -49,25 +50,25 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ data }) =>
           title="Created"
           value={data.orderCounts.created}
           color="info.main"
-          onClick={() => navigate('/orders?search=Created')}
+          onClick={() => navigate(`${routes.ORDERS}?search=Created`)}
         />
         <StatCard
           title="Assigned"
           value={data.orderCounts.assignedToCourier}
           color="warning.main"
-          onClick={() => navigate('/orders?search=AssignedToCourier')}
+          onClick={() => navigate(`${routes.ORDERS}?search=AssignedToCourier`)}
         />
         <StatCard
           title="Delivered"
           value={data.orderCounts.delivered}
           color="success.main"
-          onClick={() => navigate('/orders?search=Delivered')}
+          onClick={() => navigate(`${routes.ORDERS}?search=Delivered`)}
         />
         <StatCard
           title="Completed"
           value={data.orderCounts.completed}
           color="success.dark"
-          onClick={() => navigate('/orders?search=Completed')}
+          onClick={() => navigate(`${routes.ORDERS}?search=Completed`)}
         />
       </Box>
     </Box>

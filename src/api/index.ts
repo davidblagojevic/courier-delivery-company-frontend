@@ -1,2 +1,2 @@
-export * from './apiClient';
-export * from './axiosClient';
+export * from './api.instance';
+export * from './api.types';

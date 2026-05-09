@@ -1,15 +1,20 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth, isAdmin } from '../domain/authentication';
-import { Layout } from '../domain/app';
+import { useAuth, isAdmin } from 'domain/authentication';
 import { Alert, Box } from '@mui/material';
+import * as routes from './routes';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAdmin?: boolean;
+  redirect?: string;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin = false }) => {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  requireAdmin = false,
+  redirect = routes.LOGIN,
+}) => {
   const { isAuthenticated, isLoading, userInfo } = useAuth();
 
   if (isLoading) {
@@ -17,21 +22,18 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={redirect} replace />;
   }
 
-  // Check admin permission if required
   if (requireAdmin && !isAdmin(userInfo?.roles)) {
     return (
-      <Layout>
-        <Box sx={{ p: 3 }}>
-          <Alert severity="error">
-            Access denied. Administrator privileges required to view this page.
-          </Alert>
-        </Box>
-      </Layout>
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">
+          Access denied. Administrator privileges required to view this page.
+        </Alert>
+      </Box>
     );
   }
 
-  return <Layout>{children}</Layout>;
+  return <>{children}</>;
 };

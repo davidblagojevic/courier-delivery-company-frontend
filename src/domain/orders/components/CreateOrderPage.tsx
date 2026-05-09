@@ -26,20 +26,13 @@ import {
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { useAuth, isCustomer } from '../../authentication';
-import { axiosClient } from '../../../api/axiosClient';
+import { useAuth, isCustomer } from 'domain/authentication';
+import { api } from 'api';
 import { useNavigate } from 'react-router-dom';
-import { AddressAutocomplete } from '../../../shared/components';
-import { formatCurrency } from '../../../shared/utils';
-
-interface AvailableVehicle {
-  vehicleId: string;
-  name: string;
-  isZeroEmission: boolean;
-  vehicleImage: string | null;
-  price: number;
-  maxWeight: number;
-}
+import { AddressAutocomplete } from 'shared/components';
+import { formatCurrency } from 'shared/utils';
+import { routes } from 'router';
+import { type AvailableVehicle } from '../types';
 
 export const CreateOrderPage: React.FC = () => {
   const { userInfo } = useAuth();
@@ -67,7 +60,7 @@ export const CreateOrderPage: React.FC = () => {
 
   useEffect(() => {
     if (!userIsCustomer) {
-      navigate('/dashboard');
+      navigate(routes.DASHBOARD);
     }
   }, [userIsCustomer, navigate]);
 
@@ -95,7 +88,7 @@ export const CreateOrderPage: React.FC = () => {
         params.append('deliveryByUtc', scheduledDelivery!.toISOString());
       }
 
-      const response = await axiosClient.get(`/api/vehicles/available?${params}`);
+      const response = await api.get(`/api/vehicles/available?${params}`);
       setAvailableVehicles(response.data);
       setStep('vehicles');
     } catch (err) {
@@ -126,10 +119,10 @@ export const CreateOrderPage: React.FC = () => {
         }),
       };
 
-      const response = await axiosClient.post('/api/orders', orderData);
+      const response = await api.post('/api/orders', orderData);
       
       // Navigate to order details page with success state
-      navigate(`/orders/${response.data}`, { state: { orderCreated: true } });
+      navigate(routes.orderDetails(response.data), { state: { orderCreated: true } });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create order');
     } finally {
