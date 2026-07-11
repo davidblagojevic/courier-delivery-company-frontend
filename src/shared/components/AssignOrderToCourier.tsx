@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Card,
-  CardContent,
   Typography,
   Button,
   List,
@@ -33,14 +32,12 @@ interface AvailableCourier {
 
 interface AssignOrderToCourierProps {
   orderId: string;
-  estimatedDeliveryDate: string;
   onAssignmentComplete: () => void;
   onCancel: () => void;
 }
 
 export const AssignOrderToCourier: React.FC<AssignOrderToCourierProps> = ({
   orderId,
-  estimatedDeliveryDate,
   onAssignmentComplete,
   onCancel,
 }) => {
@@ -51,15 +48,6 @@ export const AssignOrderToCourier: React.FC<AssignOrderToCourierProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-
-  // Check if order can be assigned (estimated delivery date must have passed or be today)
-  const canAssignOrder = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const deliveryDate = new Date(estimatedDeliveryDate);
-    deliveryDate.setHours(0, 0, 0, 0);
-    return deliveryDate <= today;
-  };
 
   const fetchCouriers = async (pageNum: number = 1, append: boolean = false) => {
     setLoading(true);
@@ -88,9 +76,7 @@ export const AssignOrderToCourier: React.FC<AssignOrderToCourierProps> = ({
   };
 
   useEffect(() => {
-    if (canAssignOrder()) {
-      fetchCouriers();
-    }
+    fetchCouriers();
   }, []);
 
   const handleShowMore = () => {
@@ -115,26 +101,6 @@ export const AssignOrderToCourier: React.FC<AssignOrderToCourierProps> = ({
       setAssigning(false);
     }
   };
-
-  if (!canAssignOrder()) {
-    return (
-      <Backdrop open sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.modal }}>
-        <Card sx={{ maxWidth: 400, m: 2 }}>
-          <CardContent sx={{ textAlign: 'center', p: 3 }}>
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              Cannot assign a courier — the estimated delivery date has not yet arrived
-            </Alert>
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              Estimated delivery date: {new Date(estimatedDeliveryDate).toLocaleDateString()}
-            </Typography>
-            <Button variant="outlined" onClick={onCancel}>
-              Close
-            </Button>
-          </CardContent>
-        </Card>
-      </Backdrop>
-    );
-  }
 
   return (
     <Backdrop open sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.modal }}>

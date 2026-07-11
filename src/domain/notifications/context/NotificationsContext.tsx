@@ -1,6 +1,4 @@
 import React, {
-  createContext,
-  useContext,
   useReducer,
   useEffect,
   useCallback,
@@ -10,9 +8,10 @@ import React, {
 import { SignalRService, type NotificationData } from '../services/signalRService';
 import { NotificationsApi, type Notification, type NotificationsResponse } from '../services/notificationsApi';
 import { NotificationFilter } from '../types/NotificationFilter';
-import { type NotificationsState, type NotificationsContextType } from '../types';
+import { type NotificationsState } from '../types';
 import { useAuth } from 'domain/authentication';
 import { log } from 'shared/log';
+import { NotificationsContext } from './useNotifications';
 
 // --- STATE AND REDUCER ---
 
@@ -104,9 +103,6 @@ const notificationsReducer = (
   }
 };
 
-// --- CONTEXT AND PROVIDER ---
-
-const NotificationsContext = createContext<NotificationsContextType | null>(null);
 
 export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
   children,
@@ -267,12 +263,4 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
       {children}
     </NotificationsContext.Provider>
   );
-};
-
-export const useNotifications = (): NotificationsContextType => {
-  const context = useContext(NotificationsContext);
-  if (!context) {
-    throw new Error('useNotifications must be used within a NotificationsProvider');
-  }
-  return context;
 };

@@ -25,7 +25,7 @@ import {
   Info as InfoIcon,
   CheckCircle as SuccessIcon,
 } from '@mui/icons-material';
-import { useNotifications } from '../context/NotificationsContext';
+import { useNotifications } from '../context/useNotifications';
 import { type Notification } from '../services/notificationsApi';
 import { NotificationFilter } from '../types/NotificationFilter';
 import { formatDistanceToNow, format } from 'date-fns';

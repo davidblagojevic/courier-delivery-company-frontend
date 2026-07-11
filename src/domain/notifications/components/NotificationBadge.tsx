@@ -18,7 +18,7 @@ import {
   Circle as UnreadIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { useNotifications } from '../context/NotificationsContext';
+import { useNotifications } from '../context/useNotifications';
 import { type Notification as NotificationItem } from '../services/notificationsApi';
 import { NotificationFilter } from '../types/NotificationFilter';
 import { formatDistanceToNow } from 'date-fns';

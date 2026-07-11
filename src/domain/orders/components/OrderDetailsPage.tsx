@@ -59,7 +59,7 @@ export const OrderDetailsPage: React.FC = () => {
   const [order, setOrder] = useState<OrderDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showAssignCourier, setShowAssignCourier] = useState(false);
   const [markingDelivered, setMarkingDelivered] = useState(false);
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
@@ -68,7 +68,7 @@ export const OrderDetailsPage: React.FC = () => {
   // Check if we came from order creation
   useEffect(() => {
     if (location.state?.orderCreated) {
-      setShowSuccessMessage(true);
+      setSuccessMessage('Order created successfully! Your order has been submitted and is being processed.');
       // Clear the state to prevent showing the message again on refresh
       navigate(location.pathname, { replace: true, state: {} });
     }
@@ -109,6 +109,8 @@ export const OrderDetailsPage: React.FC = () => {
       };
       fetchOrderDetails();
     }
+    setSuccessMessage('Courier assigned successfully! The order is now in progress.');
+    setTimeout(() => setSuccessMessage(null), 5000);
   };
 
   // Check if user can assign couriers (is admin and order is created status)
@@ -159,9 +161,9 @@ export const OrderDetailsPage: React.FC = () => {
       
       const response = await api.get(`/api/orders/${order.id}`);
       setOrder(response.data);
-      
-      setShowSuccessMessage(true);
-      setTimeout(() => setShowSuccessMessage(false), 5000);
+
+      setSuccessMessage('Order marked as delivered successfully!');
+      setTimeout(() => setSuccessMessage(null), 5000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to mark order as delivered');
     } finally {
@@ -180,9 +182,9 @@ export const OrderDetailsPage: React.FC = () => {
       
       const response = await api.get(`/api/orders/${order.id}`);
       setOrder(response.data);
-      
-      setShowSuccessMessage(true);
-      setTimeout(() => setShowSuccessMessage(false), 5000);
+
+      setSuccessMessage('Order marked as completed successfully! You can now leave feedback.');
+      setTimeout(() => setSuccessMessage(null), 5000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to mark order as completed');
     } finally {
@@ -198,9 +200,9 @@ export const OrderDetailsPage: React.FC = () => {
     // Refresh order data to show the new feedback
     const response = await api.get(`/api/orders/${order.id}`);
     setOrder(response.data);
-    
-    setShowSuccessMessage(true);
-    setTimeout(() => setShowSuccessMessage(false), 5000);
+
+    setSuccessMessage('Thank you! Your feedback has been submitted.');
+    setTimeout(() => setSuccessMessage(null), 5000);
   };
 
   if (loading) {
@@ -239,13 +241,13 @@ export const OrderDetailsPage: React.FC = () => {
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Success Message */}
-      {showSuccessMessage && (
-        <Alert 
-          severity="success" 
+      {successMessage && (
+        <Alert
+          severity="success"
           sx={{ mb: 3 }}
-          onClose={() => setShowSuccessMessage(false)}
+          onClose={() => setSuccessMessage(null)}
         >
-          Order created successfully! Your order has been submitted and is being processed.
+          {successMessage}
         </Alert>
       )}
 
@@ -703,7 +705,6 @@ export const OrderDetailsPage: React.FC = () => {
       {showAssignCourier && order && (
         <AssignOrderToCourier
           orderId={order.id}
-          estimatedDeliveryDate={order.estimatedDeliveryDate}
           onAssignmentComplete={handleAssignmentComplete}
           onCancel={() => setShowAssignCourier(false)}
         />
