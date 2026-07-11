@@ -5,6 +5,8 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const proxyTarget = process.env.VITE_PROXY_TARGET ?? 'http://localhost:5080';
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
@@ -34,20 +36,20 @@ export default defineConfig({
     },
   },
   server: {
-    open: true,
+    open: !process.env.VITE_PROXY_TARGET, // no browser inside the container
     proxy: {
       '/notificationHub': {
-        target: 'http://localhost:5080',
+        target: proxyTarget,
         changeOrigin: true,
         ws: true,
         secure: false,
       },
       '/api': {
-        target: 'http://localhost:5080',
+        target: proxyTarget,
         changeOrigin: true,
       },
       '/identity': {
-        target: 'http://localhost:5080',
+        target: proxyTarget,
         changeOrigin: true,
       },
     },
